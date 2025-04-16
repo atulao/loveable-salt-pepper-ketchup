@@ -1,4 +1,8 @@
 
+/**
+ * Location utilities for enhancing location strings with coordinates
+ */
+
 // NJIT campus building coordinates data
 export const CAMPUS_BUILDING_COORDINATES: {[key: string]: [number, number]} = {
     "Athletic Field": [40.7437887, -74.1801827],
@@ -125,22 +129,22 @@ export const ROOM_TO_BUILDING_MAP: {[key: string]: string} = {
  * Normalizes a building name by checking against aliases and applying
  * standardization rules
  */
-export const normalizeBuildingName = (buildingName: string): string => {
-    if (!buildingName) return "NJIT Campus";
+export const normalizeBuildingName = (location: string): string => {
+    if (!location) return "NJIT Campus";
     
     // Check for direct alias match first (for abbreviations like GITC)
-    if (BUILDING_NAME_ALIASES[buildingName]) {
-        return BUILDING_NAME_ALIASES[buildingName];
+    if (BUILDING_NAME_ALIASES[location]) {
+        return BUILDING_NAME_ALIASES[location];
     }
     
     // Handle Kupfrian Hall special case - check if the name contains Kupf or Kupfrian
-    if (buildingName.toLowerCase().includes('kupf')) {
+    if (location.toLowerCase().includes('kupf')) {
         return "Kupfrian Hall";
     }
     
     // Handle room number patterns like "CKB 126" (Building abbreviation + room number)
     const roomPattern = /^([A-Za-z]{1,5})\s*(\d{1,4})$/;
-    const roomMatch = buildingName.match(roomPattern);
+    const roomMatch = location.match(roomPattern);
     
     if (roomMatch) {
         const buildingCode = roomMatch[1].toUpperCase();
@@ -159,12 +163,12 @@ export const normalizeBuildingName = (buildingName: string): string => {
     }
     
     // Check for residence hall specific patterns
-    if (buildingName.includes("Lounge") || buildingName.includes("Kitchen") || buildingName.includes("Floor")) {
+    if (location.includes("Lounge") || location.includes("Kitchen") || location.includes("Floor")) {
         for (const hall of ["Redwood", "Cypress", "Oak", "Laurel", "Maple"]) {
-            if (buildingName.includes(hall)) {
+            if (location.includes(hall)) {
                 // Check existing specific entry first
-                if (CAMPUS_BUILDING_COORDINATES[buildingName]) {
-                    return buildingName;
+                if (CAMPUS_BUILDING_COORDINATES[location]) {
+                    return location;
                 }
                 
                 // If no exact match, use the residence hall coordinates
@@ -175,44 +179,44 @@ export const normalizeBuildingName = (buildingName: string): string => {
     
     // Check for room-specific mapping
     for (const [room, building] of Object.entries(ROOM_TO_BUILDING_MAP)) {
-        if (buildingName.includes(room)) {
+        if (location.includes(room)) {
             return `${building} ${room}`;
         }
     }
     
     // Handle NJIT prefix
-    if (buildingName.startsWith("NJIT ")) {
-        return normalizeBuildingName(buildingName.substring(5));
+    if (location.startsWith("NJIT ")) {
+        return normalizeBuildingName(location.substring(5));
     }
     
-    return buildingName;
+    return location;
 };
 
 /**
  * Gets coordinates for a building name using multiple matching strategies
  */
-export const getBuildingCoordinates = (buildingName: string): [number, number] => {
+export const getBuildingCoordinates = (location: string): [number, number] => {
     // Handle empty case
-    if (!buildingName) {
+    if (!location) {
         return CAMPUS_BUILDING_COORDINATES["NJIT Campus"];
     }
     
     // Special case for Kupfrian - check if name contains Kupf
-    if (buildingName.toLowerCase().includes('kupf')) {
+    if (location.toLowerCase().includes('kupf')) {
         return CAMPUS_BUILDING_COORDINATES["Kupfrian Hall"];
     }
     
     // Try exact match first
-    if (CAMPUS_BUILDING_COORDINATES[buildingName]) {
-        return CAMPUS_BUILDING_COORDINATES[buildingName];
+    if (CAMPUS_BUILDING_COORDINATES[location]) {
+        return CAMPUS_BUILDING_COORDINATES[location];
     }
     
     // Try partial match (case insensitive)
-    const lowerCaseBuildingName = buildingName.toLowerCase();
+    const lowerCaseLocation = location.toLowerCase();
     
     // First, search for buildings that contain the entire query
     for (const [key, coords] of Object.entries(CAMPUS_BUILDING_COORDINATES)) {
-        if (key.toLowerCase().includes(lowerCaseBuildingName)) {
+        if (key.toLowerCase().includes(lowerCaseLocation)) {
             return coords;
         }
     }
@@ -220,7 +224,7 @@ export const getBuildingCoordinates = (buildingName: string): [number, number] =
     // Second, check if query contains a known building name
     for (const [key, coords] of Object.entries(CAMPUS_BUILDING_COORDINATES)) {
         const keyLower = key.toLowerCase();
-        if (keyLower.length > 5 && lowerCaseBuildingName.includes(keyLower)) {
+        if (keyLower.length > 5 && lowerCaseLocation.includes(keyLower)) {
             return coords;
         }
     }
@@ -228,7 +232,7 @@ export const getBuildingCoordinates = (buildingName: string): [number, number] =
     // Third, for residence halls, check if any part of the name includes a residence hall
     const residenceHalls = ["Redwood", "Cypress", "Oak", "Laurel", "Maple"];
     for (const hall of residenceHalls) {
-        if (lowerCaseBuildingName.toLowerCase().includes(hall.toLowerCase())) {
+        if (lowerCaseLocation.toLowerCase().includes(hall.toLowerCase())) {
             const hallKey = `${hall} Residence Hall`;
             if (CAMPUS_BUILDING_COORDINATES[hallKey]) {
                 return CAMPUS_BUILDING_COORDINATES[hallKey];
@@ -237,15 +241,15 @@ export const getBuildingCoordinates = (buildingName: string): [number, number] =
     }
     
     // Fourth, try to match key words like "Hall" or "Center"
-    const buildingParts = lowerCaseBuildingName.split(/\s+/);
+    const locationParts = lowerCaseLocation.split(/\s+/);
     const buildingTypes = ["hall", "center", "building", "room", "lounge", "kitchen"];
     
-    for (const part of buildingParts) {
+    for (const part of locationParts) {
         if (buildingTypes.includes(part)) {
             // Find the word before this building type
-            const index = buildingParts.indexOf(part);
+            const index = locationParts.indexOf(part);
             if (index > 0) {
-                const potentialName = `${buildingParts[index-1]} ${part}`;
+                const potentialName = `${locationParts[index-1]} ${part}`;
                 
                 // Try to find this pattern in our known buildings
                 for (const [key, coords] of Object.entries(CAMPUS_BUILDING_COORDINATES)) {
@@ -258,8 +262,26 @@ export const getBuildingCoordinates = (buildingName: string): [number, number] =
     }
     
     // Return default campus coordinate if no match found
-    console.log(`No coordinates found for "${buildingName}", using default campus coordinates`);
+    console.log(`No coordinates found for "${location}", using default campus coordinates`);
     return CAMPUS_BUILDING_COORDINATES["NJIT Campus"];
+};
+
+/**
+ * Gets an enhanced location string with coordinates if available
+ */
+export const getEnhancedLocation = (location: string): string => {
+    if (!location) return "NJIT Campus";
+    
+    try {
+        const normalized = normalizeBuildingName(location);
+        const coordinates = getBuildingCoordinates(normalized);
+        
+        // Return original location with coordinates
+        return `${location} (${coordinates[0]}, ${coordinates[1]})`;
+    } catch (error) {
+        console.error('Error enhancing location:', error);
+        return location;
+    }
 };
 
 /**
@@ -283,22 +305,5 @@ export const getDirectionsUrl = (location: string): string => {
         console.error('Error generating directions URL:', error);
         // Fallback
         return `https://www.google.com/maps/dir/?api=1&destination=NJIT+${encodeURIComponent(location)}`;
-    }
-};
-
-/**
- * Enhances location string with GPS coordinates for calendar services
- */
-export const getEnhancedLocation = (location: string): string => {
-    try {
-        const normalizedLocation = normalizeBuildingName(location);
-        const coordinates = getBuildingCoordinates(normalizedLocation);
-        
-        // Return a formatted string that includes both the location name and coordinates
-        // Format: "Location Name (lat,lng)"
-        return `${location} (${coordinates[0]},${coordinates[1]})`;
-    } catch (error) {
-        console.error('Error enhancing location:', error);
-        return location;
     }
 };
