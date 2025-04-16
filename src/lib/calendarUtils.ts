@@ -11,22 +11,38 @@ import { getEnhancedLocation } from './locationUtils';
  * @returns ISO formatted date string
  */
 export const formatCalendarDateTime = (dateString: string, timeString: string): string => {
-  const [hours, minutesPart] = timeString.split(':');
-  const [minutes, period] = minutesPart.split(' ');
+  // Parse the time string properly
+  const [hourPart, minutePart] = timeString.split(':');
   
-  let hour = parseInt(hours);
+  // Extract minutes and period (AM/PM)
+  const minutesMatch = minutePart.match(/(\d+)\s*([APap][Mm])/);
+  if (!minutesMatch) {
+    console.error(`Invalid time format: ${timeString}`);
+    return new Date().toISOString(); // Fallback to current time
+  }
+  
+  const minutes = parseInt(minutesMatch[1]);
+  const period = minutesMatch[2].toUpperCase();
+  
+  let hour = parseInt(hourPart);
   
   // Convert 12-hour format to 24-hour format
-  if (period.toUpperCase() === 'PM' && hour < 12) {
+  if (period === 'PM' && hour < 12) {
     hour += 12;
-  } else if (period.toUpperCase() === 'AM' && hour === 12) {
+  } else if (period === 'AM' && hour === 12) {
     hour = 0;
   }
   
-  // Create a new date object and set the hours and minutes
-  const date = new Date(dateString);
-  date.setHours(hour);
-  date.setMinutes(parseInt(minutes));
+  // Create a new date object with the correct parsing
+  // First ensure the date string is in the correct format
+  const [year, month, day] = dateString.split('-').map(num => parseInt(num));
+  
+  // JavaScript months are 0-indexed, so we subtract 1 from the month
+  const date = new Date(year, month - 1, day, hour, minutes);
+  
+  // Log the input and resulting date for debugging
+  console.log(`Date input: ${dateString} ${timeString}`);
+  console.log(`Parsed date: ${date.toISOString()}`);
   
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
 };
@@ -113,6 +129,8 @@ export const generateCalendarUrls = (
   startTimeString: string,
   endTimeString: string
 ) => {
+  console.log(`Generating calendar URLs for: ${dateString} from ${startTimeString} to ${endTimeString}`);
+  
   // Format dates for calendar services
   const startDateTime = formatCalendarDateTime(dateString, startTimeString);
   const endDateTime = formatCalendarDateTime(dateString, endTimeString);
