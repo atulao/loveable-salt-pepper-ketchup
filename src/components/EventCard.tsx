@@ -1,8 +1,18 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Copy, Plus } from 'lucide-react';
+import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download } from 'lucide-react';
 import { Event } from '@/data/mockEvents';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  generateCalendarUrls,
+  downloadICalFile
+} from '@/lib/calendarUtils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface EventCardProps {
   event: Event;
@@ -31,13 +41,44 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     }
   };
 
-  const handleAddToCalendar = (e: React.MouseEvent) => {
+  const handleAddToCalendar = (e: React.MouseEvent, calendarType: 'google' | 'apple' | 'outlook') => {
     e.stopPropagation();
     
-    toast({
-      title: "Added to calendar",
-      description: "This event has been added to your calendar",
-    });
+    const calendarUrls = generateCalendarUrls(
+      event.title,
+      event.description,
+      event.location,
+      event.date,
+      event.time,
+      event.endTime
+    );
+    
+    if (calendarType === 'google') {
+      window.open(calendarUrls.google, '_blank');
+      toast({
+        title: "Adding to Google Calendar",
+        description: "Event details have been sent to Google Calendar",
+      });
+    } else if (calendarType === 'apple') {
+      downloadICalFile(
+        event.title,
+        event.description,
+        event.location,
+        event.date,
+        event.time,
+        event.endTime
+      );
+      toast({
+        title: "Apple Calendar file downloaded",
+        description: "Open the .ics file to add this event to your calendar",
+      });
+    } else if (calendarType === 'outlook') {
+      window.open(calendarUrls.outlook, '_blank');
+      toast({
+        title: "Adding to Outlook Calendar",
+        description: "Event details have been sent to Outlook Calendar",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -113,13 +154,28 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 Share
               </button>
               
-              <button 
-                className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
-                onClick={handleAddToCalendar}
-              >
-                <Plus size={16} className="mr-1" />
-                Add to Calendar
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Plus size={16} className="mr-1" />
+                    Add to Calendar
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'google')}>
+                    Google Calendar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'apple')}>
+                    Apple Calendar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'outlook')}>
+                    Outlook Calendar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         )}
