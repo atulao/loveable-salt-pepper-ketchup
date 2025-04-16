@@ -2,6 +2,7 @@
 /**
  * Calendar integration utilities for generating calendar links
  */
+import { getEnhancedLocation } from './locationUtils';
 
 /**
  * Format a date and time string into an ISO format used by calendar services
@@ -40,11 +41,14 @@ export const generateGoogleCalendarUrl = (
   startDateTime: string,
   endDateTime: string
 ): string => {
+  // Use enhanced location with coordinates
+  const enhancedLocation = getEnhancedLocation(location);
+  
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
     details: description,
-    location,
+    location: enhancedLocation,
     dates: `${startDateTime}/${endDateTime}`,
   });
   
@@ -61,6 +65,9 @@ export const generateICalString = (
   startDateTime: string,
   endDateTime: string
 ): string => {
+  // Use enhanced location with coordinates
+  const enhancedLocation = getEnhancedLocation(location);
+  
   // Create a UID for the event based on title and start time
   const uid = `${title.replace(/\s+/g, '')}-${startDateTime}@njit-events.com`;
   
@@ -73,7 +80,7 @@ export const generateICalString = (
   
   // Escape special characters in text fields
   const escapedTitle = title.replace(/,/g, '\\,').replace(/;/g, '\\;');
-  const escapedLocation = location.replace(/,/g, '\\,').replace(/;/g, '\\;');
+  const escapedLocation = enhancedLocation.replace(/,/g, '\\,').replace(/;/g, '\\;');
   const escapedDescription = description.replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
   
   return [
@@ -110,13 +117,16 @@ export const generateCalendarUrls = (
   const startDateTime = formatCalendarDateTime(dateString, startTimeString);
   const endDateTime = formatCalendarDateTime(dateString, endTimeString);
   
+  // Use enhanced location with coordinates
+  const enhancedLocation = getEnhancedLocation(location);
+  
   return {
     google: generateGoogleCalendarUrl(title, description, location, startDateTime, endDateTime),
     ical: `data:text/calendar;charset=utf8,${encodeURIComponent(
       generateICalString(title, description, location, startDateTime, endDateTime)
     )}`,
-    // Outlook Web uses the same format as Google Calendar
-    outlook: `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&location=${encodeURIComponent(location)}&body=${encodeURIComponent(description)}&startdt=${encodeURIComponent(startDateTime)}&enddt=${encodeURIComponent(endDateTime)}`,
+    // Outlook Web uses the same format as Google Calendar but with enhanced location
+    outlook: `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&location=${encodeURIComponent(enhancedLocation)}&body=${encodeURIComponent(description)}&startdt=${encodeURIComponent(startDateTime)}&enddt=${encodeURIComponent(endDateTime)}`,
   };
 };
 

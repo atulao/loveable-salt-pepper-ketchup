@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download } from 'lucide-react';
+import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map } from 'lucide-react';
 import { Event } from '@/data/mockEvents';
 import { useToast } from '@/hooks/use-toast';
 import { 
   generateCalendarUrls,
   downloadICalFile
 } from '@/lib/calendarUtils';
+import { getDirectionsUrl } from '@/lib/locationUtils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,17 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         description: "Event details have been copied to clipboard",
       });
     }
+  };
+  
+  const handleGetDirections = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const directionsUrl = getDirectionsUrl(event.location);
+    window.open(directionsUrl, '_blank');
+    toast({
+      title: "Opening directions",
+      description: "Google Maps is opening with directions to this location",
+    });
   };
 
   const handleAddToCalendar = (e: React.MouseEvent, calendarType: 'google' | 'apple' | 'outlook') => {
@@ -126,7 +138,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           
           <div className="flex items-center text-gray-600">
             <MapPin size={16} className="mr-2 text-njit-red" />
-            <span>{event.location}</span>
+            <span className="truncate">{event.location}</span>
           </div>
         </div>
         
@@ -145,13 +157,21 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <div className="mt-4 animate-fade-in">
             <p className="text-gray-700">{event.description}</p>
             
-            <div className="mt-4 flex justify-end space-x-2">
+            <div className="mt-4 flex flex-wrap justify-end space-x-2">
               <button 
                 className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
                 onClick={handleShare}
               >
                 <Share2 size={16} className="mr-1" />
                 Share
+              </button>
+              
+              <button 
+                className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
+                onClick={handleGetDirections}
+              >
+                <Map size={16} className="mr-1" />
+                Directions
               </button>
               
               <DropdownMenu>
