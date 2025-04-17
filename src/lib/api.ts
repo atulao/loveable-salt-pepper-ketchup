@@ -10,8 +10,8 @@ import { Event } from '@/data/mockEvents';
  */
 export async function fetchEvents(query: string = ''): Promise<Event[]> {
   try {
-    // Use the Next.js Pages API route for compatibility
-    const apiUrl = new URL('/api/events/index', window.location.origin);
+    // Construct the URL for our Next.js API
+    const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
       apiUrl.searchParams.append('query', query);
@@ -39,8 +39,7 @@ export async function fetchEvents(query: string = ''): Promise<Event[]> {
     return transformApiEvents(data.value || []);
   } catch (error) {
     console.error('Error fetching from Next.js API:', error);
-    // Return empty array instead of throwing to prevent app from crashing
-    return [];
+    throw error; // Rethrow to handle in the component
   }
 }
 
