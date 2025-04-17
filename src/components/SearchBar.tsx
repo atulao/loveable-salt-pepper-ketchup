@@ -30,11 +30,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
         
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error(`Invalid content type: ${contentType}`);
-        }
-        
         const data = await response.json();
         console.log('SearchBar: Initial events data:', data);
         
@@ -184,6 +179,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       </form>
     </div>
   );
-};
+}
 
 export default SearchBar;

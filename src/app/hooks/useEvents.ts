@@ -12,14 +12,14 @@ export function useEvents(initialQuery: string = '') {
   const { toast } = useToast();
 
   const fetchEvents = async (query: string = ''): Promise<Event[]> => {
-    // Use the pages API route which is compatible with Vite
+    // Use the Next.js API route
     const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
       apiUrl.searchParams.append('query', query);
     }
     
-    console.log("useEvents: Fetching from API route:", apiUrl.toString());
+    console.log("useEvents: Fetching from Next.js API route:", apiUrl.toString());
     
     // Make the request to our API route
     const response = await fetch(apiUrl.toString(), {
