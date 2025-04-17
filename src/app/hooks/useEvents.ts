@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Event } from '@/data/mockEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ export function useEvents(initialQuery: string = '') {
   const { toast } = useToast();
 
   const fetchEvents = async (query: string = ''): Promise<Event[]> => {
-    // Construct the URL for our API route - use app router by default
+    // Use the pages API route which is compatible with Vite
     const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {

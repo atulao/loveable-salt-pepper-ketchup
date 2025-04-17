@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
 import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
@@ -22,11 +23,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   useEffect(() => {
     const loadInitialEvents = async () => {
       try {
+        console.log('SearchBar: Loading initial events for suggestions');
         const response = await fetch('/api/events');
+        
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error(`Invalid content type: ${contentType}`);
+        }
+        
         const data = await response.json();
+        console.log('SearchBar: Initial events data:', data);
         
         if (!data || !data.value) {
           throw new Error('Invalid API response format');
