@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
-import { processNaturalLanguageQuery } from '@/lib/eventUtils';
+import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { events } from '@/data/mockEvents';
 
 interface SearchBarProps {
   onSearch: (query: string, categories: string[], hasFreeFood: boolean) => void;
@@ -10,6 +12,28 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [query, setQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Generate search suggestions based on user input
+  useEffect(() => {
+    if (query.trim().length > 2) {
+      // Find matching events using semantic search
+      const matchingEvents = semanticSearchEvents(events, query);
+      
+      // Extract suggestions from matching events
+      const newSuggestions = matchingEvents
+        .slice(0, 5)
+        .map(event => event.title)
+        .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+      
+      setSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [query]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,17 +41,32 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     if (query.trim()) {
       const { processedQuery, categories, hasFreeFood } = processNaturalLanguageQuery(query);
       onSearch(processedQuery, categories, hasFreeFood);
+      setShowSuggestions(false);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setQuery(suggestion);
+    const { processedQuery, categories, hasFreeFood } = processNaturalLanguageQuery(suggestion);
+    onSearch(processedQuery, categories, hasFreeFood);
+    setShowSuggestions(false);
   };
 
   const handleFocus = () => {
     setIsExpanded(true);
+    if (query.trim().length > 2) {
+      setShowSuggestions(suggestions.length > 0);
+    }
   };
 
   const handleBlur = () => {
-    if (!query) {
-      setIsExpanded(false);
-    }
+    // Delay hiding suggestions to allow for clicks
+    setTimeout(() => {
+      if (!query) {
+        setIsExpanded(false);
+      }
+      setShowSuggestions(false);
+    }, 200);
   };
 
   return (
@@ -57,9 +96,29 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           </button>
         </div>
         
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+            <Command className="rounded-lg border shadow-md">
+              <CommandList>
+                <CommandGroup heading="Suggestions">
+                  {suggestions.map((suggestion, index) => (
+                    <CommandItem 
+                      key={index}
+                      onSelect={() => handleSuggestionClick(suggestion)}
+                      className="cursor-pointer"
+                    >
+                      {suggestion}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </div>
+        )}
+        
         {isExpanded && (
           <div className="mt-2 text-sm text-gray-500 px-4 animate-fade-in">
-            <p>Try: "Where can I get free pizza today?" or "When is the next tutoring session?"</p>
+            <p>Try: "Where can I get free pizza today?" or "Evening tech events this week"</p>
           </div>
         )}
       </form>

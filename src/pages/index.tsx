@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import PersonaToggle from '@/components/PersonaToggle';
@@ -8,7 +9,9 @@ import {
   filterEventsByQuery, 
   filterEventsByCategories, 
   filterEventsByFreeFood,
-  filterEventsByPersona
+  filterEventsByPersona,
+  getRecommendedEvents,
+  semanticSearchEvents
 } from '@/lib/eventUtils';
 
 const Index: React.FC = () => {
@@ -21,6 +24,12 @@ const Index: React.FC = () => {
   // State for filtered events
   const [filteredEvents, setFilteredEvents] = useState<Event[]>(events);
   
+  // State for tracking viewed events (for recommendations)
+  const [viewedEventIds, setViewedEventIds] = useState<string[]>([]);
+  
+  // State for user interests (could be persisted in localStorage in a real app)
+  const [userInterests, setUserInterests] = useState<string[]>([]);
+  
   // Apply filters whenever search parameters change
   useEffect(() => {
     let result = [...events];
@@ -28,9 +37,15 @@ const Index: React.FC = () => {
     // Apply persona filter
     result = filterEventsByPersona(result, persona);
     
-    // Apply search query filter
+    // Apply search query filter - use semantic search if query is complex
     if (searchQuery) {
-      result = filterEventsByQuery(result, searchQuery);
+      if (searchQuery.split(' ').length > 2) {
+        // Use semantic search for more complex queries
+        result = semanticSearchEvents(result, searchQuery);
+      } else {
+        // Use regular filter for simple queries
+        result = filterEventsByQuery(result, searchQuery);
+      }
     }
     
     // Apply category filters
@@ -43,8 +58,15 @@ const Index: React.FC = () => {
       result = filterEventsByFreeFood(result, showFreeFood);
     }
     
+    // If no filters are applied, show recommended events
+    if (!searchQuery && selectedCategories.length === 0 && !showFreeFood) {
+      const recommended = getRecommendedEvents(result, viewedEventIds, userInterests, persona);
+      // Mix some recommended events with regular events
+      result = [...recommended.slice(0, 3), ...result.filter(e => !recommended.slice(0, 3).some(r => r.id === e.id))];
+    }
+    
     setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, persona]);
+  }, [searchQuery, selectedCategories, showFreeFood, persona, viewedEventIds, userInterests]);
   
   // Handle search submission
   const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
@@ -58,6 +80,27 @@ const Index: React.FC = () => {
     // Set free food filter if detected in query
     if (hasFreeFood) {
       setShowFreeFood(true);
+    }
+  };
+  
+  // Track viewed events for recommendation engine
+  const handleEventView = (eventId: string) => {
+    if (!viewedEventIds.includes(eventId)) {
+      setViewedEventIds(prev => [...prev, eventId]);
+      
+      // Update user interests based on viewed event
+      const viewedEvent = events.find(e => e.id === eventId);
+      if (viewedEvent) {
+        setUserInterests(prev => {
+          const newInterests = [...prev];
+          viewedEvent.categories.forEach(category => {
+            if (!newInterests.includes(category)) {
+              newInterests.push(category);
+            }
+          });
+          return newInterests;
+        });
+      }
     }
   };
   
@@ -92,7 +135,8 @@ const Index: React.FC = () => {
         <section>
           <EventList 
             events={filteredEvents} 
-            searchQuery={searchQuery} 
+            searchQuery={searchQuery}
+            onEventView={handleEventView}
           />
         </section>
       </div>
