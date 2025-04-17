@@ -22,6 +22,7 @@ export interface Event {
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -54,6 +55,7 @@ export const useEvents = () => {
       setError(null);
       
       let eventsData: Event[] = [];
+      let count = 0;
       
       // First try to fetch from external API via our Supabase Edge Function
       try {
@@ -66,14 +68,16 @@ export const useEvents = () => {
         
         if (apiResponse && Array.isArray(apiResponse)) {
           eventsData = apiResponse;
+          count = apiResponse.length;
+          console.log(`Fetched ${count} events from API`);
         }
       } catch (apiErr) {
         console.error('Failed to fetch from external API, falling back to database:', apiErr);
         
         // Fallback to database if API fails
-        const { data: dbData, error: dbError } = await supabase
+        const { data: dbData, error: dbError, count: dbCount } = await supabase
           .from('events')
-          .select('*')
+          .select('*', { count: 'exact' })
           .order('date', { ascending: true });
           
         if (dbError) {
@@ -81,9 +85,12 @@ export const useEvents = () => {
         }
         
         eventsData = dbData || [];
+        count = dbCount || 0;
+        console.log(`Fetched ${count} events from database`);
       }
       
       setEvents(eventsData);
+      setTotalCount(count);
     } catch (err: any) {
       console.error('Error fetching events:', err);
       setError(err.message);
@@ -177,6 +184,7 @@ export const useEvents = () => {
 
   return { 
     events, 
+    totalCount,
     isLoading, 
     error, 
     fetchEvents, 

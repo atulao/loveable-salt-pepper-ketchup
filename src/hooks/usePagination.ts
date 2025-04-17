@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface UsePaginationProps {
   totalItems: number;
@@ -13,10 +13,17 @@ export function usePagination({ totalItems, itemsPerPage, initialPage = 1 }: Use
   // Calculate total pages
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   
+  // Reset to page 1 when filters change and total items count changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [totalItems]);
+  
   // Make sure current page is within bounds
-  if (currentPage > totalPages) {
-    setCurrentPage(totalPages);
-  }
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
   
   // Calculate page range to display
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -34,11 +41,13 @@ export function usePagination({ totalItems, itemsPerPage, initialPage = 1 }: Use
   
   const goToPage = (page: number) => {
     const validPage = Math.max(1, Math.min(page, totalPages));
-    setCurrentPage(validPage);
-    console.log(`Going to page ${validPage} of ${totalPages}`);
-    
-    // Scroll to top when changing pages
-    window.scrollTo(0, 0);
+    if (validPage !== currentPage) {
+      setCurrentPage(validPage);
+      console.log(`Going to page ${validPage} of ${totalPages} (total items: ${totalItems})`);
+      
+      // Scroll to top when changing pages
+      window.scrollTo(0, 0);
+    }
   };
   
   const nextPage = () => {

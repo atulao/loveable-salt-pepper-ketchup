@@ -21,7 +21,7 @@ const ITEMS_PER_PAGE = 20;
 
 const EventsPage: React.FC = () => {
   // Get events from Supabase
-  const { events, isLoading, error, fetchEvents } = useEvents();
+  const { events, totalCount, isLoading, error, fetchEvents } = useEvents();
   const { persona } = useAuth();
   
   // State for search and filters
@@ -60,9 +60,6 @@ const EventsPage: React.FC = () => {
     }
     
     setFilteredEvents(result);
-    
-    // Reset to page 1 when filters change
-    pagination.goToPage(1);
   }, [searchQuery, selectedCategories, showFreeFood, events]);
   
   // Get paginated events after filters are applied
@@ -89,12 +86,13 @@ const EventsPage: React.FC = () => {
 
   useEffect(() => {
     // Log the total number of events for debugging
-    console.log(`Total events: ${events?.length || 0}`);
+    console.log(`Total events from API: ${events?.length || 0}`);
+    console.log(`Total count reported: ${totalCount}`);
     console.log(`Filtered events: ${filteredEvents.length}`);
     console.log(`Items per page: ${ITEMS_PER_PAGE}`);
     console.log(`Current page: ${pagination.currentPage}`);
     console.log(`Total pages: ${pagination.totalPages}`);
-  }, [events, filteredEvents, pagination.currentPage, pagination.totalPages]);
+  }, [events, totalCount, filteredEvents, pagination.currentPage, pagination.totalPages]);
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-6 max-w-[1600px]">
