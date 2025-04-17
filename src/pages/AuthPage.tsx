@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
@@ -56,10 +58,10 @@ const AuthPage: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email || !password || !firstName || !lastName) {
       toast({
         title: "Missing fields",
-        description: "Please enter both email and password",
+        description: "Please enter all required fields",
         variant: "destructive",
       });
       return;
@@ -76,7 +78,7 @@ const AuthPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const { error, data } = await signUp(email, password);
+      const { error, data } = await signUp(email, password, firstName, lastName);
       if (error) {
         toast({
           title: "Signup failed",
@@ -152,6 +154,30 @@ const AuthPage: React.FC = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignup}>
               <CardContent className="space-y-4 pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label htmlFor="signup-email" className="text-sm font-medium">Email</label>
                   <Input
