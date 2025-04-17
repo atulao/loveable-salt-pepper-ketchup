@@ -1,55 +1,45 @@
+
 /**
  * Functions for fetching data from the NJIT Campus Labs API
  */
 
-import { Event, mockEvents } from '@/data/mockEvents';
-
-const API_BASE_URL = 'https://njit.campuslabs.com/engage/api/discovery';
+import { Event, events } from '@/data/mockEvents';
 
 /**
- * Fetches events from the NJIT Campus Labs API
+ * Fetches events from the NJIT Campus Labs API via our server-side proxy
  */
 export async function fetchEvents(query: string = ''): Promise<Event[]> {
   try {
-    // Construct the URL for the NJIT API
-    const apiUrl = new URL(`${API_BASE_URL}/event/search`);
-    apiUrl.searchParams.append('endsAfter', new Date().toISOString());
-    apiUrl.searchParams.append('orderByField', 'endsOn');
-    apiUrl.searchParams.append('orderByDirection', 'ascending');
-    apiUrl.searchParams.append('status', 'Approved');
-    apiUrl.searchParams.append('take', '100');
+    // Construct the URL for our proxy API
+    const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
       apiUrl.searchParams.append('query', query);
     }
     
-    console.log("Fetching from NJIT API:", apiUrl.toString());
+    console.log("Fetching from proxy API:", apiUrl.toString());
     
-    // Make the request
+    // Make the request to our proxy instead of directly to NJIT
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
       },
-      mode: 'cors', // Explicitly set CORS mode
     });
     
     if (!response.ok) {
-      console.error(`NJIT API error (${response.status}): ${response.statusText}`);
-      console.log("Falling back to mock data due to API error");
-      return mockEvents;
+      console.error(`Proxy API error (${response.status}): ${response.statusText}`);
+      throw new Error(`Failed to fetch events: ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log(`Successfully fetched ${data.value?.length || 0} events from NJIT API`);
+    console.log(`Successfully fetched ${data.value?.length || 0} events from proxy API`);
     
     // Transform the API response to match our Event interface
     return transformApiEvents(data.value || []);
   } catch (error) {
-    console.error('Error fetching from NJIT API:', error);
-    console.log("Falling back to mock data due to API error");
-    return mockEvents; // Return mock data as fallback
+    console.error('Error fetching from proxy API:', error);
+    throw error; // Rethrow to handle in the component
   }
 }
 

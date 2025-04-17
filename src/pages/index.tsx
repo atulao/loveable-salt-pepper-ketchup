@@ -27,6 +27,7 @@ const Index: React.FC = () => {
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Toast notifications
   const { toast } = useToast();
@@ -41,25 +42,30 @@ const Index: React.FC = () => {
   useEffect(() => {
     const loadEvents = async () => {
       setLoading(true);
+      setError(null);
       try {
         const events = await fetchEvents();
+        setAllEvents(events);
+        setLoading(false);
+        
         if (events.length === 0) {
+          setError('No events found. Please try again later.');
           toast({
             title: "No events found",
-            description: "We couldn't load any events from the NJIT API. Using fallback data.",
+            description: "We couldn't load any events at this time. Please try again later.",
             variant: "destructive",
           });
         }
-        setAllEvents(events);
-        setLoading(false);
       } catch (error) {
         console.error('Failed to fetch events:', error);
+        setError('Error loading events. Please try again later.');
         toast({
           title: "Error loading events",
-          description: "Could not load events from NJIT API. Using cached data if available.",
+          description: "Could not load events from the API. Please try again later.",
           variant: "destructive",
         });
         setLoading(false);
+        setAllEvents([]);
       }
     };
     
@@ -123,16 +129,25 @@ const Index: React.FC = () => {
     // If there's a query, fetch more specific results from the API
     if (query) {
       setLoading(true);
+      setError(null);
       try {
         const events = await fetchEvents(query);
         setAllEvents(events);
         setLoading(false);
+        
+        if (events.length === 0) {
+          toast({
+            title: "No results found",
+            description: `We couldn't find any events matching "${query}". Try a different search term.`,
+            variant: "default",
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch events with query:', error);
-        // Keep using the current events but notify the user
+        setError('Search failed. Please try again.');
         toast({
-          title: "Search issue",
-          description: "Could not fetch new events. Using current data.",
+          title: "Search failed",
+          description: "Could not search for events. Please try again.",
           variant: "destructive",
         });
         setLoading(false);
@@ -194,6 +209,17 @@ const Index: React.FC = () => {
             <div className="flex justify-center items-center py-16">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-njit-red"></div>
               <span className="ml-3 text-lg text-gray-600">Loading events...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <h3 className="text-2xl font-medium text-gray-700 mb-2">Something went wrong</h3>
+              <p className="text-gray-500 mb-4">{error}</p>
+              <button 
+                onClick={() => fetchEvents()}
+                className="bg-njit-red hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           ) : (
             <EventList 

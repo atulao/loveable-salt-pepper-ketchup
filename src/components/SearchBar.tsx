@@ -16,6 +16,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+  const [fetchError, setFetchError] = useState(false);
 
   // Load initial events for suggestions
   useEffect(() => {
@@ -23,8 +24,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       try {
         const events = await fetchEvents();
         setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
+        setFetchError(false);
       } catch (error) {
         console.error('Failed to load initial events for suggestions:', error);
+        setFetchError(true);
+        setRecentEvents([]);
       }
     };
 
@@ -33,7 +37,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
 
   // Generate search suggestions based on user input
   useEffect(() => {
-    if (query.trim().length > 2) {
+    if (query.trim().length > 2 && recentEvents.length > 0) {
       // Find matching events using semantic search
       const matchingEvents = semanticSearchEvents(recentEvents, query);
       
