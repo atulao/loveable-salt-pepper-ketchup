@@ -1,3 +1,4 @@
+
 export interface Event {
   id: string;
   title: string;
@@ -9,7 +10,6 @@ export interface Event {
   categories: string[];
   hasFreeFood: boolean;
   image?: string;
-  organizerName?: string;
 }
 
 export const events: Event[] = [
@@ -24,7 +24,6 @@ export const events: Event[] = [
     categories: ["Academic", "Food", "Technology"],
     hasFreeFood: true,
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1000",
-    organizerName: "ACM Student Chapter"
   },
   {
     id: "2",
@@ -37,7 +36,6 @@ export const events: Event[] = [
     categories: ["Career", "Networking"],
     hasFreeFood: false,
     image: "https://images.unsplash.com/photo-1559644981-5a6f4b371d77?q=80&w=1000",
-    organizerName: "Career Services"
   },
   {
     id: "3",
@@ -50,7 +48,6 @@ export const events: Event[] = [
     categories: ["Social", "Food", "Commuter"],
     hasFreeFood: true,
     image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=1000",
-    organizerName: "Student Life"
   },
   {
     id: "4",
@@ -63,7 +60,6 @@ export const events: Event[] = [
     categories: ["Academic", "Resident"],
     hasFreeFood: false,
     image: "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?q=80&w=1000",
-    organizerName: "Van Houten Library"
   },
   {
     id: "5",
@@ -76,7 +72,6 @@ export const events: Event[] = [
     categories: ["Academic", "Food", "Science"],
     hasFreeFood: true,
     image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=1000",
-    organizerName: "Biology Department"
   },
   {
     id: "6",
@@ -89,7 +84,6 @@ export const events: Event[] = [
     categories: ["Social", "Entertainment", "Resident"],
     hasFreeFood: true,
     image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1000",
-    organizerName: "Residence Life"
   },
   {
     id: "7",
@@ -102,7 +96,6 @@ export const events: Event[] = [
     categories: ["Commuter", "Social"],
     hasFreeFood: false,
     image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000",
-    organizerName: "Student Government Association"
   },
   {
     id: "8",
@@ -115,9 +108,5 @@ export const events: Event[] = [
     categories: ["Technology", "Competition", "Food"],
     hasFreeFood: true,
     image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1000",
-    organizerName: "NJIT Hackers"
   }
 ];
-
-// Export the events array as mockEvents for backwards compatibility
-export const mockEvents = events;
