@@ -1,9 +1,9 @@
 
-import type { NextRequest, NextResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const NJIT_API_URL = 'https://njit.campuslabs.com/engage/api/discovery/event/search';
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: Request): Promise<Response> {
   // Get query parameters from the request URL
   const url = new URL(request.url);
   const query = url.searchParams.get('query') || '';
