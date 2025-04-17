@@ -1,5 +1,5 @@
 
-import { Event } from '@/data/mockEvents';
+import { Event } from '@/hooks/useEvents';
 
 // Filter events based on search query
 export const filterEventsByQuery = (events: Event[], query: string): Event[] => {
@@ -30,7 +30,7 @@ export const filterEventsByCategories = (events: Event[], categories: string[]):
 export const filterEventsByFreeFood = (events: Event[], hasFreeFood: boolean): Event[] => {
   if (!hasFreeFood) return events;
   
-  return events.filter(event => event.hasFreeFood);
+  return events.filter(event => event.has_free_food);
 };
 
 // Filter events based on user persona (Commuter or Resident)
@@ -39,12 +39,12 @@ export const filterEventsByPersona = (events: Event[], persona: 'commuter' | 're
     // Prioritize daytime events, events with food, and commuter-specific activities
     return events.filter(event => {
       const isCommuter = event.categories.includes('Commuter');
-      const hasFreeFood = event.hasFreeFood;
+      const hasFreeFood = event.has_free_food;
       
       // Check if it's a daytime event (between 8AM and 5PM)
       const startTime = event.time;
-      const isDaytime = startTime.includes('AM') || 
-                        (startTime.includes('PM') && 
+      const isDaytime = startTime?.includes('AM') || 
+                        (startTime?.includes('PM') && 
                          parseInt(startTime.split(':')[0]) < 5);
       
       return isCommuter || hasFreeFood || isDaytime;
@@ -56,7 +56,7 @@ export const filterEventsByPersona = (events: Event[], persona: 'commuter' | 're
       
       // Check if it's an evening event (after 5PM)
       const startTime = event.time;
-      const isEvening = startTime.includes('PM') && 
+      const isEvening = startTime?.includes('PM') && 
                         parseInt(startTime.split(':')[0]) >= 5;
       
       return isResident || isEvening;
