@@ -12,7 +12,7 @@ export function useEvents(initialQuery: string = '') {
   const { toast } = useToast();
 
   const fetchEvents = async (query: string = ''): Promise<Event[]> => {
-    // Construct the URL for our API route
+    // Construct the URL for our API route - use app router by default
     const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
@@ -27,6 +27,7 @@ export function useEvents(initialQuery: string = '') {
       headers: {
         'Accept': 'application/json',
       },
+      cache: 'no-store', // Don't cache the results
     });
     
     if (!response.ok) {
@@ -50,6 +51,9 @@ export function useEvents(initialQuery: string = '') {
   const { data: events = [], isLoading: loading, error } = useQuery({
     queryKey: ['events', searchQuery],
     queryFn: () => fetchEvents(searchQuery),
+    staleTime: 1000 * 60 * 5, // Keep data fresh for 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
     meta: {
       onError: (err: Error) => {
         console.error('useEvents: Error fetching events:', err);
@@ -88,12 +92,13 @@ function transformApiEvents(apiEvents: any[]): Event[] {
     const startTime = formatTime(startDate);
     const endTime = formatTime(endDate);
     
-    // Determine if event has free food by checking the description
+    // Determine if event has free food by checking the description and name
     const hasFreeFood = 
       (apiEvent.description?.toLowerCase().includes('free food') || 
        apiEvent.name?.toLowerCase().includes('free food') ||
        apiEvent.description?.toLowerCase().includes('pizza') ||
-       apiEvent.description?.toLowerCase().includes('refreshments')) ?? false;
+       apiEvent.description?.toLowerCase().includes('refreshments') ||
+       apiEvent.description?.toLowerCase().includes('food provided')) ?? false;
     
     // Determine categories based on themes or include default categories
     const categories = apiEvent.themes?.length > 0 

@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
 import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { Event } from '@/data/mockEvents';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchBarProps {
   onSearch: (query: string, categories: string[], hasFreeFood: boolean) => void;
@@ -16,6 +16,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [fetchError, setFetchError] = useState(false);
+  const { toast } = useToast();
 
   // Load initial events for suggestions
   useEffect(() => {
@@ -26,6 +27,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           throw new Error(`API error: ${response.status}`);
         }
         const data = await response.json();
+        
+        if (!data || !data.value) {
+          throw new Error('Invalid API response format');
+        }
         
         // Transform the API response to match our Event interface
         const events = data.value?.map((event: any) => ({
@@ -48,11 +53,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         console.error('Failed to load initial events for suggestions:', error);
         setFetchError(true);
         setRecentEvents([]);
+        
+        toast({
+          title: "Suggestion loading failed",
+          description: "We couldn't load event suggestions. Search will still work.",
+          variant: "default",
+        });
       }
     };
 
     loadInitialEvents();
-  }, []);
+  }, [toast]);
 
   // Generate search suggestions based on user input
   useEffect(() => {

@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   try {
-    console.log("API Route: Fetching from NJIT API:", njitApiUrl.toString());
+    console.log("Pages API Route: Fetching from NJIT API:", njitApiUrl.toString());
     
     // Make the request from the server side
     const response = await fetch(njitApiUrl.toString(), {
@@ -32,21 +32,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
+      // This fetch is happening on the server, so no CORS issues
     });
     
     if (!response.ok) {
-      console.error(`API Route: NJIT API error (${response.status}): ${response.statusText}`);
+      console.error(`Pages API Route: NJIT API error (${response.status}): ${response.statusText}`);
       return res.status(response.status).json({ 
         error: `Failed to fetch data from NJIT API: ${response.statusText}` 
       });
     }
     
     const data = await response.json();
-    console.log(`API Route: Successfully fetched ${data.value?.length || 0} events from NJIT API`);
+    console.log(`Pages API Route: Successfully fetched ${data.value?.length || 0} events from NJIT API`);
     
     return res.status(200).json(data);
   } catch (error) {
-    console.error('API Route: Error fetching from NJIT API:', error);
+    console.error('Pages API Route: Error fetching from NJIT API:', error);
     return res.status(500).json({ error: 'Failed to fetch data from NJIT API' });
   }
 }

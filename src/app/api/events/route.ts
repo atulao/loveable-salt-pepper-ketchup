@@ -1,5 +1,5 @@
 
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 
 const NJIT_API_URL = 'https://njit.campuslabs.com/engage/api/discovery/event/search';
 
@@ -30,29 +30,26 @@ export async function GET(request: Request): Promise<Response> {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      // This fetch is happening on the server, so no CORS issues
+      cache: 'no-store', // Don't cache the results
     });
     
     if (!response.ok) {
       console.error(`API Route: NJIT API error (${response.status}): ${response.statusText}`);
-      return new Response(
-        JSON.stringify({ error: `Failed to fetch data from NJIT API: ${response.statusText}` }),
-        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { error: `Failed to fetch data from NJIT API: ${response.statusText}` },
+        { status: response.status }
       );
     }
     
     const data = await response.json();
     console.log(`API Route: Successfully fetched ${data.value?.length || 0} events from NJIT API`);
     
-    return new Response(
-      JSON.stringify(data),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json(data);
   } catch (error) {
     console.error('API Route: Error fetching from NJIT API:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch data from NJIT API' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return NextResponse.json(
+      { error: 'Failed to fetch data from NJIT API' },
+      { status: 500 }
     );
   }
 }
