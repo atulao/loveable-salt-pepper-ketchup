@@ -8,6 +8,7 @@ import BuildingsPage from "@/pages/BuildingsPage";
 import BuildingDetailPage from "@/pages/BuildingDetailPage";
 import NotFound from "@/pages/NotFound";
 import AuthPage from "@/pages/AuthPage";
+import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import Layout from "@/components/layout/Layout";
 
 // Protected route component
@@ -36,6 +37,7 @@ const AppRoutes = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       
       {/* Protected routes within Layout */}
       <Route element={<Layout />}>
