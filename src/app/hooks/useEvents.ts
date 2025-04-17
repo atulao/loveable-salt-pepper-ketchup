@@ -2,72 +2,71 @@
 import { useState, useEffect } from 'react';
 import { Event } from '@/data/mockEvents';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Hook for fetching events from the NJIT Campus Labs API
  */
 export function useEvents(initialQuery: string = '') {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const { toast } = useToast();
 
-  const fetchEvents = async (query: string = '') => {
-    setLoading(true);
-    setError(null);
+  const fetchEvents = async (query: string = ''): Promise<Event[]> => {
+    // Construct the URL for our API route
+    const apiUrl = new URL('/api/events', window.location.origin);
     
-    try {
-      // Construct the URL for our API route
-      const apiUrl = new URL('/api/events', window.location.origin);
-      
-      if (query) {
-        apiUrl.searchParams.append('query', query);
-      }
-      
-      console.log("useEvents: Fetching from API route:", apiUrl.toString());
-      
-      // Make the request to our API route
-      const response = await fetch(apiUrl.toString(), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.error(`useEvents: API error (${response.status}): ${response.statusText}`);
-        throw new Error(`Failed to fetch events: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log(`useEvents: Successfully fetched ${data.value?.length || 0} events`);
-      
-      // Transform the API response to match our Event interface
-      const transformedEvents = transformApiEvents(data.value || []);
-      setEvents(transformedEvents);
-    } catch (error) {
-      console.error('useEvents: Error fetching events:', error);
-      setError('Error loading events. Please try again later.');
+    if (query) {
+      apiUrl.searchParams.append('query', query);
+    }
+    
+    console.log("useEvents: Fetching from API route:", apiUrl.toString());
+    
+    // Make the request to our API route
+    const response = await fetch(apiUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.error(`useEvents: API error (${response.status}): ${response.statusText}`);
+      throw new Error(`Failed to fetch events: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data || !data.value) {
+      console.error('useEvents: Invalid response format from API');
+      throw new Error('Invalid response format from API');
+    }
+    
+    console.log(`useEvents: Successfully fetched ${data.value?.length || 0} events`);
+    
+    // Transform the API response to match our Event interface
+    return transformApiEvents(data.value || []);
+  };
+
+  const { data: events = [], isLoading: loading, error } = useQuery({
+    queryKey: ['events', searchQuery],
+    queryFn: () => fetchEvents(searchQuery),
+    onError: (err: Error) => {
+      console.error('useEvents: Error fetching events:', err);
       toast({
         title: "Error loading events",
         description: "Could not load events from the API. Please try again later.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Fetch events on component mount with the initial query
-  useEffect(() => {
-    fetchEvents(initialQuery);
-  }, [initialQuery]);
+  });
 
   return {
     events,
     loading,
-    error,
-    fetchEvents,
+    error: error ? (error as Error).message : null,
+    fetchEvents: (query: string) => {
+      setSearchQuery(query);
+    }
   };
 }
 
