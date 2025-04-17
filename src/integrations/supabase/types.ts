@@ -9,7 +9,104 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          categories: string[] | null
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          end_time: string | null
+          has_free_food: boolean | null
+          id: string
+          image_url: string | null
+          location: string | null
+          time: string | null
+          title: string
+        }
+        Insert: {
+          categories?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description?: string | null
+          end_time?: string | null
+          has_free_food?: boolean | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          time?: string | null
+          title: string
+        }
+        Update: {
+          categories?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          end_time?: string | null
+          has_free_food?: boolean | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          time?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          persona: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          persona?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          persona?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map } from 'lucide-react';
-import { Event } from '@/data/mockEvents';
+import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
+import { Event } from '@/hooks/useEvents';
 import { 
   generateCalendarUrls,
   downloadICalFile
@@ -22,6 +24,9 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const [expanded, setExpanded] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const favorited = isFavorite(event.id);
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,7 +67,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       event.location,
       event.date,
       event.time,
-      event.endTime
+      event.end_time
     );
     
     if (calendarType === 'google') {
@@ -78,7 +83,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         event.location,
         event.date,
         event.time,
-        event.endTime
+        event.end_time
       );
       toast({
         title: "Apple Calendar file downloaded",
@@ -93,6 +98,11 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     }
   };
 
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(event.id);
+  };
+
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
@@ -105,14 +115,14 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       }`}
       onClick={() => setExpanded(!expanded)}
     >
-      {event.image && (
+      {event.image_url && (
         <div className="relative h-48 overflow-hidden">
           <img 
-            src={event.image} 
+            src={event.image_url} 
             alt={event.title} 
             className="w-full h-full object-cover"
           />
-          {event.hasFreeFood && (
+          {event.has_free_food && (
             <div className="absolute top-0 right-0 bg-njit-red text-white py-1 px-3 rounded-bl-lg font-medium text-sm">
               Free Food
             </div>
@@ -123,6 +133,14 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       <div className="p-4">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold text-njit-navy">{event.title}</h3>
+          {user && (
+            <button 
+              onClick={handleToggleFavorite}
+              className={`p-1 rounded-full ${favorited ? 'text-red-500' : 'text-gray-400 hover:text-red-500'} transition-colors`}
+            >
+              <Heart size={20} fill={favorited ? "currentColor" : "none"} />
+            </button>
+          )}
         </div>
         
         <div className="mt-2 space-y-2">
@@ -133,7 +151,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           
           <div className="flex items-center text-gray-600">
             <Clock size={16} className="mr-2 text-njit-red" />
-            <span>{event.time} - {event.endTime}</span>
+            <span>{event.time} - {event.end_time}</span>
           </div>
           
           <div className="flex items-center text-gray-600">

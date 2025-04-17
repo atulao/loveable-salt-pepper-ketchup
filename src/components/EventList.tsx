@@ -1,14 +1,23 @@
 
 import React from 'react';
-import { Event } from '@/data/mockEvents';
 import EventCard from './EventCard';
+import { Event } from '@/hooks/useEvents';
 
 interface EventListProps {
   events: Event[];
   searchQuery: string;
+  isLoading?: boolean;
 }
 
-const EventList: React.FC<EventListProps> = ({ events, searchQuery }) => {
+const EventList: React.FC<EventListProps> = ({ events, searchQuery, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-2xl font-medium text-gray-700 mb-2">Loading events...</h3>
+      </div>
+    );
+  }
+  
   if (events.length === 0) {
     return (
       <div className="text-center py-12">

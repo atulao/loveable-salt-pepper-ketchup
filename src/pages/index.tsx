@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Map, Calendar, Building, Info } from 'lucide-react';
@@ -7,28 +7,32 @@ import EventList from '@/components/EventList';
 import SearchBar from '@/components/SearchBar';
 import CategoryFilter from '@/components/CategoryFilter';
 import PersonaToggle from '@/components/PersonaToggle';
-import { events } from '@/data/mockEvents';
-import { useState, useEffect } from 'react';
+import { useEvents, Event } from '@/hooks/useEvents';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   filterEventsByQuery, 
   filterEventsByCategories, 
   filterEventsByFreeFood,
   filterEventsByPersona
 } from '@/lib/eventUtils';
-import { Event } from '@/data/mockEvents';
 
 const Index: React.FC = () => {
+  // Get events from Supabase
+  const { events, isLoading } = useEvents();
+  const { persona } = useAuth();
+  
   // State for search and filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showFreeFood, setShowFreeFood] = useState(false);
-  const [persona, setPersona] = useState<'commuter' | 'resident'>('commuter');
   
   // State for filtered events
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>(events);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   
   // Apply filters whenever search parameters change
   useEffect(() => {
+    if (!events) return;
+    
     let result = [...events];
     
     // Apply persona filter
@@ -50,7 +54,7 @@ const Index: React.FC = () => {
     }
     
     setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, persona]);
+  }, [searchQuery, selectedCategories, showFreeFood, persona, events]);
   
   // Handle search submission
   const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
@@ -90,7 +94,7 @@ const Index: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-njit-navy mb-2">
-            NJIT Campus Compass
+            Salt-Pepper-Ketchup
           </h1>
           <p className="text-lg text-gray-600 mb-4">
             Your guide to navigating New Jersey Institute of Technology
@@ -106,10 +110,7 @@ const Index: React.FC = () => {
           </div>
           
           <div className="mb-8">
-            <PersonaToggle 
-              persona={persona} 
-              setPersona={setPersona} 
-            />
+            <PersonaToggle />
             
             <CategoryFilter 
               selectedCategories={selectedCategories}
@@ -121,7 +122,8 @@ const Index: React.FC = () => {
           
           <EventList 
             events={filteredEvents} 
-            searchQuery={searchQuery} 
+            searchQuery={searchQuery}
+            isLoading={isLoading}
           />
         </section>
         

@@ -1,13 +1,11 @@
 
 import React from 'react';
 import { Car, Home } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface PersonaToggleProps {
-  persona: 'commuter' | 'resident';
-  setPersona: (persona: 'commuter' | 'resident') => void;
-}
+const PersonaToggle: React.FC = () => {
+  const { persona, setPersona } = useAuth();
 
-const PersonaToggle: React.FC<PersonaToggleProps> = ({ persona, setPersona }) => {
   return (
     <div className="flex items-center justify-center space-x-2 mb-6">
       <span className="text-sm font-medium text-gray-700">Mode:</span>
