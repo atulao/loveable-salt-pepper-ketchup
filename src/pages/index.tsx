@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import PersonaToggle from '@/components/PersonaToggle';
@@ -42,6 +43,13 @@ const Index: React.FC = () => {
       setLoading(true);
       try {
         const events = await fetchEvents();
+        if (events.length === 0) {
+          toast({
+            title: "No events found",
+            description: "We couldn't load any events from the NJIT API. Using fallback data.",
+            variant: "destructive",
+          });
+        }
         setAllEvents(events);
         setLoading(false);
       } catch (error) {

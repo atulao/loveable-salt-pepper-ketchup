@@ -4,6 +4,7 @@
  */
 
 import { Event } from '@/data/mockEvents';
+import { mockEvents } from '@/data/mockEvents';
 
 const API_BASE_URL = 'https://njit.campuslabs.com/engage/api/discovery';
 
@@ -32,12 +33,14 @@ export async function fetchEvents(query: string = ''): Promise<Event[]> {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-      }
+      },
+      mode: 'cors', // Explicitly set CORS mode
     });
     
     if (!response.ok) {
       console.error(`NJIT API error (${response.status}): ${response.statusText}`);
-      return [];
+      console.log("Falling back to mock data due to API error");
+      return mockEvents;
     }
     
     const data = await response.json();
@@ -47,7 +50,8 @@ export async function fetchEvents(query: string = ''): Promise<Event[]> {
     return transformApiEvents(data.value || []);
   } catch (error) {
     console.error('Error fetching from NJIT API:', error);
-    return [];
+    console.log("Falling back to mock data due to API error");
+    return mockEvents; // Return mock data as fallback
   }
 }
 
