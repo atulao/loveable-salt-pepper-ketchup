@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Event {
   id: string;
@@ -23,11 +23,12 @@ export const useEvents = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchEvents();
 
-    // Set up realtime subscription
+    // Set up realtime subscription for database events
     const channel = supabase
       .channel('public:events')
       .on('postgres_changes', { 
@@ -35,7 +36,7 @@ export const useEvents = () => {
         schema: 'public', 
         table: 'events' 
       }, (payload) => {
-        // Refresh events when there's a change
+        // Refresh events when there's a change to the DB
         fetchEvents();
       })
       .subscribe();
@@ -48,20 +49,47 @@ export const useEvents = () => {
   const fetchEvents = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
+      let eventsData: Event[] = [];
+      
+      // First try to fetch from external API via our Supabase Edge Function
+      try {
+        const { data: apiResponse, error: apiError } = await supabase.functions.invoke('fetch-events');
         
-      if (error) {
-        throw error;
+        if (apiError) {
+          console.error('Error from external API:', apiError);
+          throw new Error(apiError.message);
+        }
+        
+        if (apiResponse && Array.isArray(apiResponse)) {
+          eventsData = apiResponse;
+        }
+      } catch (apiErr) {
+        console.error('Failed to fetch from external API, falling back to database:', apiErr);
+        
+        // Fallback to database if API fails
+        const { data: dbData, error: dbError } = await supabase
+          .from('events')
+          .select('*')
+          .order('date', { ascending: true });
+          
+        if (dbError) {
+          throw dbError;
+        }
+        
+        eventsData = dbData || [];
       }
       
-      setEvents(data || []);
+      setEvents(eventsData);
     } catch (err: any) {
       console.error('Error fetching events:', err);
       setError(err.message);
+      toast({
+        title: "Error fetching events",
+        description: err.message,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

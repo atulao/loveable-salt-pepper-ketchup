@@ -6,6 +6,9 @@ import CategoryFilter from '@/components/CategoryFilter';
 import PersonaToggle from '@/components/PersonaToggle';
 import { useEvents, Event } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { Button } from '@/components/ui/button';
 import { 
   filterEventsByQuery, 
   filterEventsByCategories, 
@@ -15,7 +18,7 @@ import {
 
 const EventsPage: React.FC = () => {
   // Get events from Supabase
-  const { events, isLoading } = useEvents();
+  const { events, isLoading, error, fetchEvents } = useEvents();
   const { persona } = useAuth();
   
   // State for search and filters
@@ -68,9 +71,30 @@ const EventsPage: React.FC = () => {
     }
   };
 
+  const handleRefresh = () => {
+    fetchEvents();
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-njit-navy mb-6">Campus Events</h1>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {error}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              className="ml-2"
+            >
+              Try Again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       
       <div className="mb-8">
         <SearchBar onSearch={handleSearch} />
@@ -86,6 +110,13 @@ const EventsPage: React.FC = () => {
           setShowFreeFood={setShowFreeFood}
         />
       </div>
+      
+      {isLoading && (
+        <div className="flex justify-center items-center py-8">
+          <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+          <span>Loading NJIT campus events...</span>
+        </div>
+      )}
       
       <EventList 
         events={filteredEvents} 
