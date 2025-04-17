@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
 import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { fetchEvents } from '@/lib/api';
 import { Event } from '@/data/mockEvents';
 
 interface SearchBarProps {
@@ -22,7 +21,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   useEffect(() => {
     const loadInitialEvents = async () => {
       try {
-        const events = await fetchEvents();
+        const response = await fetch('/api/events');
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        // Transform the API response to match our Event interface
+        const events = data.value?.map((event: any) => ({
+          id: event.id,
+          title: event.name,
+          description: event.description || '',
+          date: new Date(event.startsOn).toISOString().split('T')[0],
+          time: '',
+          endTime: '',
+          location: event.location || '',
+          image: event.imagePath || null,
+          categories: event.themes?.map((theme: any) => theme.name) || ['Campus Event'],
+          hasFreeFood: false,
+          organizerName: event.organizationName || 'NJIT'
+        })) || [];
+        
         setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
         setFetchError(false);
       } catch (error) {
