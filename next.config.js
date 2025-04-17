@@ -14,6 +14,13 @@ const nextConfig = {
   webpack(config) {
     return config;
   },
+  // Set port to 8080 as required
+  serverRuntimeConfig: {
+    port: 8080
+  },
+  env: {
+    PORT: 8080
+  }
 }
 
 module.exports = nextConfig;

@@ -5,6 +5,7 @@ import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUt
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { Event } from '@/data/mockEvents';
 import { useToast } from '@/hooks/use-toast';
+import { fetchEvents } from '@/lib/api';
 
 interface SearchBarProps {
   onSearch: (query: string, categories: string[], hasFreeFood: boolean) => void;
@@ -24,33 +25,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     const loadInitialEvents = async () => {
       try {
         console.log('SearchBar: Loading initial events for suggestions');
-        const response = await fetch('/api/events');
         
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('SearchBar: Initial events data:', data);
-        
-        if (!data || !data.value) {
-          throw new Error('Invalid API response format');
-        }
-        
-        // Transform the API response to match our Event interface
-        const events = data.value?.map((event: any) => ({
-          id: event.id,
-          title: event.name,
-          description: event.description || '',
-          date: new Date(event.startsOn).toISOString().split('T')[0],
-          time: '',
-          endTime: '',
-          location: event.location || '',
-          image: event.imagePath || null,
-          categories: event.themes?.map((theme: any) => theme.name) || ['Campus Event'],
-          hasFreeFood: false,
-          organizerName: event.organizationName || 'NJIT'
-        })) || [];
+        // Use our API utility function
+        const events = await fetchEvents('');
         
         setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
         setFetchError(false);

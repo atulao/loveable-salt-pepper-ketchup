@@ -10,7 +10,7 @@ import { Event } from '@/data/mockEvents';
  */
 export async function fetchEvents(query: string = ''): Promise<Event[]> {
   try {
-    // Construct the URL for our proxy API
+    // Construct the URL for our Next.js API
     const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
@@ -19,7 +19,7 @@ export async function fetchEvents(query: string = ''): Promise<Event[]> {
     
     console.log("Fetching from Next.js API:", apiUrl.toString());
     
-    // Make the request to our proxy instead of directly to NJIT
+    // Make the request to our Next.js API instead of directly to NJIT
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
