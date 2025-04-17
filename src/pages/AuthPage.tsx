@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,10 +59,19 @@ const AuthPage: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !confirmPassword) {
       toast({
         title: "Missing fields",
         description: "Please enter all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match",
         variant: "destructive",
       });
       return;
@@ -86,11 +96,21 @@ const AuthPage: React.FC = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Account created",
-          description: "Please check your email to confirm your account",
-        });
-        navigate('/');
+        // Automatically log in if signup was successful
+        const { error: signInError } = await signIn(email, password);
+        if (signInError) {
+          toast({
+            title: "Account created",
+            description: "Your account was created but we couldn't log you in automatically. Please log in.",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Account created",
+            description: "Your account has been created and you've been logged in",
+          });
+          navigate('/');
+        }
       }
     } catch (error: any) {
       toast({
@@ -197,6 +217,17 @@ const AuthPage: React.FC = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="confirm-password" className="text-sm font-medium">Confirm Password</label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
                   <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
