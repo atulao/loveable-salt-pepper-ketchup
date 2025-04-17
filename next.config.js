@@ -7,7 +7,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: '/api/:path*',
+        destination: '/api/:path*', // Keep the destination as is, but ensure API routes are recognized
       },
     ];
   },

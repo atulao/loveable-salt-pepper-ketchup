@@ -29,8 +29,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         // Use our API utility function
         const events = await fetchEvents('');
         
-        setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
-        setFetchError(false);
+        if (events.length > 0) {
+          setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
+          setFetchError(false);
+        } else {
+          setFetchError(true);
+          console.log('SearchBar: No events returned for suggestions');
+        }
       } catch (error) {
         console.error('Failed to load initial events for suggestions:', error);
         setFetchError(true);
