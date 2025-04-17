@@ -12,23 +12,8 @@ const nextConfig = {
     ];
   },
   webpack(config) {
-    // Prevent TypeScript from looking for vite.config.ts
-    config.resolve = {
-      ...config.resolve,
-      alias: {
-        ...config.resolve.alias,
-        // Add any aliases you need here
-      },
-    };
     return config;
   },
-  // Set port to 8080 as required
-  serverRuntimeConfig: {
-    port: 8080
-  },
-  env: {
-    PORT: 8080
-  }
 }
 
 module.exports = nextConfig;

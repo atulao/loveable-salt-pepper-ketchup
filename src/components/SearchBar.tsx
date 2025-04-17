@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
 import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { Event } from '@/data/mockEvents';
-import { useToast } from '@/hooks/use-toast';
 import { fetchEvents } from '@/lib/api';
+import { Event } from '@/data/mockEvents';
 
 interface SearchBarProps {
   onSearch: (query: string, categories: string[], hasFreeFood: boolean) => void;
@@ -18,34 +17,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [fetchError, setFetchError] = useState(false);
-  const { toast } = useToast();
 
   // Load initial events for suggestions
   useEffect(() => {
     const loadInitialEvents = async () => {
       try {
-        console.log('SearchBar: Loading initial events for suggestions');
-        
-        // Use our API utility function
-        const events = await fetchEvents('');
-        
+        const events = await fetchEvents();
         setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
         setFetchError(false);
       } catch (error) {
         console.error('Failed to load initial events for suggestions:', error);
         setFetchError(true);
         setRecentEvents([]);
-        
-        toast({
-          title: "Suggestion loading failed",
-          description: "We couldn't load event suggestions. Search will still work.",
-          variant: "default",
-        });
       }
     };
 
     loadInitialEvents();
-  }, [toast]);
+  }, []);
 
   // Generate search suggestions based on user input
   useEffect(() => {
@@ -156,6 +144,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       </form>
     </div>
   );
-}
+};
 
 export default SearchBar;

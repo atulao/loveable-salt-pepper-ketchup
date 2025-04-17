@@ -3,23 +3,23 @@
  * Functions for fetching data from the NJIT Campus Labs API
  */
 
-import { Event } from '@/data/mockEvents';
+import { Event, events } from '@/data/mockEvents';
 
 /**
  * Fetches events from the NJIT Campus Labs API via our server-side proxy
  */
 export async function fetchEvents(query: string = ''): Promise<Event[]> {
   try {
-    // Construct the URL for our Next.js API
+    // Construct the URL for our proxy API
     const apiUrl = new URL('/api/events', window.location.origin);
     
     if (query) {
       apiUrl.searchParams.append('query', query);
     }
     
-    console.log("Fetching from Next.js API:", apiUrl.toString());
+    console.log("Fetching from proxy API:", apiUrl.toString());
     
-    // Make the request to our Next.js API instead of directly to NJIT
+    // Make the request to our proxy instead of directly to NJIT
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -28,17 +28,17 @@ export async function fetchEvents(query: string = ''): Promise<Event[]> {
     });
     
     if (!response.ok) {
-      console.error(`Next.js API error (${response.status}): ${response.statusText}`);
+      console.error(`Proxy API error (${response.status}): ${response.statusText}`);
       throw new Error(`Failed to fetch events: ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log(`Successfully fetched ${data.value?.length || 0} events from Next.js API`);
+    console.log(`Successfully fetched ${data.value?.length || 0} events from proxy API`);
     
     // Transform the API response to match our Event interface
     return transformApiEvents(data.value || []);
   } catch (error) {
-    console.error('Error fetching from Next.js API:', error);
+    console.error('Error fetching from proxy API:', error);
     throw error; // Rethrow to handle in the component
   }
 }
