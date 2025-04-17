@@ -7,7 +7,7 @@ import PersonaToggle from '@/components/PersonaToggle';
 import { useEvents, Event } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ReloadIcon } from '@radix-ui/react-icons';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   filterEventsByQuery, 
@@ -113,7 +113,7 @@ const EventsPage: React.FC = () => {
       
       {isLoading && (
         <div className="flex justify-center items-center py-8">
-          <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           <span>Loading NJIT campus events...</span>
         </div>
       )}
