@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import { useEvents } from '@/hooks/useEvents'
 import { usePagination } from '@/hooks/usePagination'
@@ -16,6 +17,7 @@ const EventsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [showFreeFood, setShowFreeFood] = useState(false)
+  const [shouldResetPage, setShouldResetPage] = useState(false)
 
   // pagination state - will be updated after we get data
   const {
@@ -43,39 +45,33 @@ const EventsPage: React.FC = () => {
     if (totalCount !== undefined) {
       console.log(`Updating pagination with total count: ${totalCount}`)
       setTotalItems(totalCount)
-      
-      // Only reset to page 1 when filters change, not on initial load
-      if (totalCount === 0 && currentPage > 1) {
-        goToPage(1)
-      }
     }
-  }, [totalCount, setTotalItems, goToPage, currentPage])
+  }, [totalCount, setTotalItems])
+
+  // Handle resetting to page 1 when filters change
+  useEffect(() => {
+    if (shouldResetPage && currentPage !== 1) {
+      goToPage(1)
+      setShouldResetPage(false)
+    }
+  }, [shouldResetPage, currentPage, goToPage])
 
   // Handle search submission
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Reset to page 1 when search changes
-    if (currentPage !== 1) {
-      goToPage(1);
-    }
+    setSearchQuery(query)
+    setShouldResetPage(true)
   }
 
   // Handle category changes
   const handleCategoriesChange = (categories: string[]) => {
-    setSelectedCategories(categories);
-    // Reset to page 1 when categories change
-    if (currentPage !== 1) {
-      goToPage(1);
-    }
+    setSelectedCategories(categories)
+    setShouldResetPage(true)
   }
 
   // Handle free food toggle
   const handleFreeFoodToggle = (value: boolean) => {
-    setShowFreeFood(value);
-    // Reset to page 1 when free food filter changes
-    if (currentPage !== 1) {
-      goToPage(1);
-    }
+    setShowFreeFood(value)
+    setShouldResetPage(true)
   }
 
   return (
