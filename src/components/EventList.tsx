@@ -7,9 +7,17 @@ interface EventListProps {
   events: Event[];
   searchQuery: string;
   isLoading?: boolean;
+  totalCount?: number;
+  currentPage?: number;
+  totalPages?: number;
 }
 
-const EventList: React.FC<EventListProps> = ({ events, searchQuery, isLoading }) => {
+const EventList: React.FC<EventListProps> = ({ 
+  events, 
+  searchQuery, 
+  isLoading,
+  totalCount
+}) => {
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -32,10 +40,17 @@ const EventList: React.FC<EventListProps> = ({ events, searchQuery, isLoading })
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {events.map((event) => (
-        <EventCard key={event.id} event={event} />
-      ))}
+    <div>
+      {totalCount && (
+        <div className="mb-4 text-sm text-gray-500">
+          Showing {events.length} of {totalCount} events
+        </div>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
     </div>
   );
 };

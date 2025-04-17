@@ -1,8 +1,8 @@
-
 import { Event } from '@/hooks/useEvents';
 
 // Helper function to strip HTML tags
 const stripHtml = (html: string) => {
+  if (!html) return '';
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = html;
   return tempDiv.textContent || tempDiv.innerText || '';
@@ -16,16 +16,22 @@ export const filterEventsByQuery = (events: Event[], query: string): Event[] => 
   
   return events.filter(event => {
     // Create a plain text version of the description for searching
-    let plainTextDescription = stripHtml(event.description);
+    let plainTextDescription = stripHtml(event.description || '');
+    
+    // Special handling for food-related searches
+    if (normalizedQuery.includes('pizza') || normalizedQuery.includes('food')) {
+      return event.has_free_food || 
+             event.title.toLowerCase().includes('food') ||
+             event.title.toLowerCase().includes('pizza') ||
+             plainTextDescription.toLowerCase().includes('food') ||
+             plainTextDescription.toLowerCase().includes('pizza');
+    }
     
     return (
       event.title.toLowerCase().includes(normalizedQuery) ||
       plainTextDescription.toLowerCase().includes(normalizedQuery) ||
-      event.location.toLowerCase().includes(normalizedQuery) ||
-      event.categories.some(category => category.toLowerCase().includes(normalizedQuery)) ||
-      // Check food-related terms for "pizza" searches
-      (normalizedQuery.includes('pizza') && event.has_free_food) ||
-      (normalizedQuery.includes('food') && event.has_free_food)
+      (event.location && event.location.toLowerCase().includes(normalizedQuery)) ||
+      event.categories.some(category => category.toLowerCase().includes(normalizedQuery))
     );
   });
 };
@@ -104,8 +110,8 @@ export const processNaturalLanguageQuery = (query: string): {
   ) {
     result.categories.push('Food');
     
-    // If specifically looking for free food
-    if (normalizedQuery.includes('free')) {
+    // If specifically looking for free food or pizza
+    if (normalizedQuery.includes('free') || normalizedQuery.includes('pizza')) {
       result.hasFreeFood = true;
     }
   }

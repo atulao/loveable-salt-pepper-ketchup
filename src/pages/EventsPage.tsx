@@ -4,7 +4,9 @@ import EventList from '@/components/EventList';
 import SearchBar from '@/components/SearchBar';
 import CategoryFilter from '@/components/CategoryFilter';
 import PersonaToggle from '@/components/PersonaToggle';
+import EventPagination from '@/components/EventPagination';
 import { useEvents, Event } from '@/hooks/useEvents';
+import { usePagination } from '@/hooks/usePagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
@@ -14,6 +16,8 @@ import {
   filterEventsByCategories, 
   filterEventsByFreeFood
 } from '@/lib/eventUtils';
+
+const ITEMS_PER_PAGE = 20;
 
 const EventsPage: React.FC = () => {
   // Get events from Supabase
@@ -27,6 +31,15 @@ const EventsPage: React.FC = () => {
   
   // State for filtered events
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  
+  // Setup pagination
+  const pagination = usePagination({
+    totalItems: filteredEvents.length || (events?.length || 0),
+    itemsPerPage: ITEMS_PER_PAGE
+  });
+  
+  // Get paginated events
+  const paginatedEvents = pagination.paginateItems(filteredEvents.length > 0 ? filteredEvents : (events || []));
   
   // Apply filters whenever search parameters change
   useEffect(() => {
@@ -48,9 +61,6 @@ const EventsPage: React.FC = () => {
     if (showFreeFood) {
       result = filterEventsByFreeFood(result, showFreeFood);
     }
-    
-    // Don't apply persona-based filtering by default
-    // This ensures all events are shown
     
     setFilteredEvents(result);
   }, [searchQuery, selectedCategories, showFreeFood, events]);
@@ -118,9 +128,16 @@ const EventsPage: React.FC = () => {
       )}
       
       <EventList 
-        events={filteredEvents.length > 0 ? filteredEvents : events || []} 
+        events={paginatedEvents} 
         searchQuery={searchQuery}
         isLoading={isLoading}
+        totalCount={filteredEvents.length || (events?.length || 0)}
+      />
+      
+      <EventPagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={pagination.goToPage}
       />
     </div>
   );
