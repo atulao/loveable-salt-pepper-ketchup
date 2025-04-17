@@ -1,10 +1,8 @@
-
 /**
  * Functions for fetching data from the NJIT Campus Labs API
  */
 
-import { Event } from '@/data/mockEvents';
-import { mockEvents } from '@/data/mockEvents';
+import { Event, mockEvents } from '@/data/mockEvents';
 
 const API_BASE_URL = 'https://njit.campuslabs.com/engage/api/discovery';
 
