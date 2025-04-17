@@ -25,18 +25,33 @@ export function usePagination({ totalItems, itemsPerPage, initialPage = 1 }: Use
   const paginateItems = <T>(items: T[]): T[] => {
     // Ensure we're not trying to slice beyond the array bounds
     if (!items || items.length === 0) return [];
+    
+    // Log pagination info for debugging
+    console.log(`Paginating items. Total: ${items.length}, Page: ${currentPage}, Start: ${startIndex}, End: ${Math.min(startIndex + itemsPerPage, items.length)}`);
+    
     return items.slice(startIndex, Math.min(startIndex + itemsPerPage, items.length));
   };
   
   const goToPage = (page: number) => {
     const validPage = Math.max(1, Math.min(page, totalPages));
     setCurrentPage(validPage);
+    console.log(`Going to page ${validPage} of ${totalPages}`);
+    
     // Scroll to top when changing pages
     window.scrollTo(0, 0);
   };
   
-  const nextPage = () => goToPage(currentPage + 1);
-  const prevPage = () => goToPage(currentPage - 1);
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  };
+  
+  const prevPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
   
   return {
     currentPage,

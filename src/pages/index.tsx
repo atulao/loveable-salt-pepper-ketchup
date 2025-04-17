@@ -35,12 +35,9 @@ const Index: React.FC = () => {
   
   // Setup pagination
   const pagination = usePagination({
-    totalItems: filteredEvents.length || (events?.length || 0),
+    totalItems: filteredEvents.length || 0,
     itemsPerPage: ITEMS_PER_PAGE
   });
-  
-  // Get paginated events
-  const paginatedEvents = pagination.paginateItems(filteredEvents.length > 0 ? filteredEvents : (events || []));
   
   // Apply filters whenever search parameters change
   useEffect(() => {
@@ -64,7 +61,13 @@ const Index: React.FC = () => {
     }
     
     setFilteredEvents(result);
+    
+    // Reset to page 1 when filters change
+    pagination.goToPage(1);
   }, [searchQuery, selectedCategories, showFreeFood, events]);
+  
+  // Get paginated events after filters are applied
+  const paginatedEvents = pagination.paginateItems(filteredEvents);
   
   // Handle search submission
   const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
@@ -85,7 +88,8 @@ const Index: React.FC = () => {
     // Log the total number of events for debugging
     console.log(`Total events on homepage: ${events?.length || 0}`);
     console.log(`Filtered events on homepage: ${filteredEvents.length}`);
-  }, [events, filteredEvents]);
+    console.log(`Current page: ${pagination.currentPage} of ${pagination.totalPages}`);
+  }, [events, filteredEvents, pagination.currentPage, pagination.totalPages]);
 
   // Navigation cards for other features
   const features = [
@@ -140,16 +144,18 @@ const Index: React.FC = () => {
             events={paginatedEvents} 
             searchQuery={searchQuery}
             isLoading={isLoading}
-            totalCount={filteredEvents.length || (events?.length || 0)}
+            totalCount={filteredEvents.length}
             currentPage={pagination.currentPage}
             itemsPerPage={pagination.itemsPerPage}
           />
           
-          <EventPagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            onPageChange={pagination.goToPage}
-          />
+          {filteredEvents.length > 0 && (
+            <EventPagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.goToPage}
+            />
+          )}
         </section>
         
         {/* Other Features Section */}
