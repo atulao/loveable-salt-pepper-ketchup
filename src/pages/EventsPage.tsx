@@ -1,160 +1,81 @@
+import React, { useState } from 'react'
+import { useEvents } from '@/hooks/useEvents'
+import { usePagination } from '@/hooks/usePagination'
+import EventList from '@/components/EventList'
+import EventPagination from '@/components/EventPagination'
+import SearchBar from '@/components/SearchBar'
+import CategoryFilter from '@/components/CategoryFilter'
+import PersonaToggle from '@/components/PersonaToggle'
 
-import React, { useState, useEffect } from 'react';
-import EventList from '@/components/EventList';
-import SearchBar from '@/components/SearchBar';
-import CategoryFilter from '@/components/CategoryFilter';
-import PersonaToggle from '@/components/PersonaToggle';
-import EventPagination from '@/components/EventPagination';
-import { useEvents, Event } from '@/hooks/useEvents';
-import { usePagination } from '@/hooks/usePagination';
-import { useAuth } from '@/contexts/AuthContext';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { 
-  filterEventsByQuery, 
-  filterEventsByCategories, 
-  filterEventsByFreeFood
-} from '@/lib/eventUtils';
-
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 20
 
 const EventsPage: React.FC = () => {
-  // Get events from Supabase
-  const { events, totalCount, isLoading, error, fetchEvents } = useEvents();
-  const { persona } = useAuth();
-  
-  // State for search and filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showFreeFood, setShowFreeFood] = useState(false);
-  
-  // State for filtered events
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  
-  // Setup pagination
-  const pagination = usePagination({
-    totalItems: filteredEvents.length || 0,
-    itemsPerPage: ITEMS_PER_PAGE
-  });
-  
-  // Apply filters whenever search parameters change
-  useEffect(() => {
-    if (!events) return;
-    
-    let result = [...events];
-    
-    // Apply search query filter first
-    if (searchQuery) {
-      result = filterEventsByQuery(result, searchQuery);
-    }
-    
-    // Apply category filters
-    if (selectedCategories.length > 0) {
-      result = filterEventsByCategories(result, selectedCategories);
-    }
-    
-    // Apply free food filter
-    if (showFreeFood) {
-      result = filterEventsByFreeFood(result, showFreeFood);
-    }
-    
-    setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, events]);
-  
-  // Get paginated events after filters are applied
-  const paginatedEvents = pagination.paginateItems(filteredEvents);
-  
-  // Handle search submission
-  const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
-    setSearchQuery(query);
-    
-    // Set categories from natural language processing if any were detected
-    if (categories.length > 0) {
-      setSelectedCategories(categories);
-    }
-    
-    // Set free food filter if detected in query
-    if (hasFreeFood) {
-      setShowFreeFood(true);
-    }
-  };
+  // filters & search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [showFreeFood, setShowFreeFood] = useState(false)
 
-  const handleRefresh = () => {
-    fetchEvents();
-  };
+  // pagination hook uses the totalCount returned from the server
+  const {
+    currentPage,
+    totalPages,
+    goToPage,
+    itemsPerPage,
+  } = usePagination({
+    totalItems: 0,    // placeholder, will override below
+    itemsPerPage: ITEMS_PER_PAGE,
+  })
 
-  useEffect(() => {
-    // Log the total number of events for debugging
-    console.log(`Total events from API: ${events?.length || 0}`);
-    console.log(`Total count reported: ${totalCount}`);
-    console.log(`Filtered events: ${filteredEvents.length}`);
-    console.log(`Items per page: ${ITEMS_PER_PAGE}`);
-    console.log(`Current page: ${pagination.currentPage}`);
-    console.log(`Total pages: ${pagination.totalPages}`);
-  }, [events, totalCount, filteredEvents, pagination.currentPage, pagination.totalPages]);
+  // fetch exactly one page from Supabase + filters
+  const { events, totalCount, isLoading, error } = useEvents(
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedCategories,
+    showFreeFood
+  )
+
+  // whenever totalCount changes, let the pagination hook know
+  React.useEffect(() => {
+    // override totalItems in the pagination hook
+    // this will also reset currentPage→1 if totalCount shrinks below
+    goToPage(1) // keep UX simple: jump back to page 1 whenever the overall count changes
+  }, [totalCount])
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-6 max-w-[1600px]">
-      <h1 className="text-3xl font-bold text-njit-navy mb-6">Campus Events</h1>
-      
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              className="ml-2"
-            >
-              Try Again
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="mb-6">
-        <SearchBar onSearch={handleSearch} />
-      </div>
-      
-      <div className="mb-6">
-        <PersonaToggle />
-        
-        <CategoryFilter 
-          selectedCategories={selectedCategories}
-          setSelectedCategories={setSelectedCategories}
-          showFreeFood={showFreeFood}
-          setShowFreeFood={setShowFreeFood}
-        />
-      </div>
-      
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          <span>Loading NJIT campus events...</span>
-        </div>
-      )}
-      
-      <EventList 
-        events={paginatedEvents} 
-        searchQuery={searchQuery}
-        isLoading={isLoading}
-        totalCount={filteredEvents.length}
-        currentPage={pagination.currentPage}
-        itemsPerPage={pagination.itemsPerPage}
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-4">Campus Events</h1>
+
+      <SearchBar onSearch={q => setSearchQuery(q)} />
+
+      <PersonaToggle />
+
+      <CategoryFilter
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+        showFreeFood={showFreeFood}
+        setShowFreeFood={setShowFreeFood}
       />
-      
-      {filteredEvents.length > 0 && (
+
+      {error && <div className="text-red-600 mb-4">{error}</div>}
+
+      <EventList
+        events={events}
+        isLoading={isLoading}
+        totalCount={totalCount}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+      />
+
+      {totalCount > itemsPerPage && (
         <EventPagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={pagination.goToPage}
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / itemsPerPage)}
+          onPageChange={goToPage}
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default EventsPage;
+export default EventsPage
