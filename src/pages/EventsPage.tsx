@@ -84,6 +84,15 @@ const EventsPage: React.FC = () => {
     fetchEvents();
   };
 
+  useEffect(() => {
+    // Log the total number of events for debugging
+    console.log(`Total events: ${events?.length || 0}`);
+    console.log(`Filtered events: ${filteredEvents.length}`);
+    console.log(`Items per page: ${ITEMS_PER_PAGE}`);
+    console.log(`Current page: ${pagination.currentPage}`);
+    console.log(`Total pages: ${pagination.totalPages}`);
+  }, [events, filteredEvents, pagination.currentPage, pagination.totalPages]);
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-6 max-w-[1600px]">
       <h1 className="text-3xl font-bold text-njit-navy mb-6">Campus Events</h1>
@@ -132,6 +141,8 @@ const EventsPage: React.FC = () => {
         searchQuery={searchQuery}
         isLoading={isLoading}
         totalCount={filteredEvents.length || (events?.length || 0)}
+        currentPage={pagination.currentPage}
+        itemsPerPage={pagination.itemsPerPage}
       />
       
       <EventPagination

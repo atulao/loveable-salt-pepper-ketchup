@@ -10,13 +10,16 @@ interface EventListProps {
   totalCount?: number;
   currentPage?: number;
   totalPages?: number;
+  itemsPerPage?: number;
 }
 
 const EventList: React.FC<EventListProps> = ({ 
   events, 
   searchQuery, 
   isLoading,
-  totalCount
+  totalCount,
+  currentPage,
+  itemsPerPage
 }) => {
   if (isLoading) {
     return (
@@ -39,11 +42,17 @@ const EventList: React.FC<EventListProps> = ({
     );
   }
 
+  // Calculate what to display in the count message
+  const start = currentPage && itemsPerPage ? (currentPage - 1) * itemsPerPage + 1 : 1;
+  const end = currentPage && itemsPerPage ? Math.min(start + events.length - 1, totalCount || 0) : events.length;
+
   return (
     <div>
-      {totalCount && (
+      {totalCount !== undefined && (
         <div className="mb-4 text-sm text-gray-500">
-          Showing {events.length} of {totalCount} events
+          {totalCount > events.length 
+            ? `Showing ${start}-${end} of ${totalCount} events` 
+            : `Showing all ${totalCount} events`}
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

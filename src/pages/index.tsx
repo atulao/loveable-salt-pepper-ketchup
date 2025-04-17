@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,6 +81,12 @@ const Index: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    // Log the total number of events for debugging
+    console.log(`Total events on homepage: ${events?.length || 0}`);
+    console.log(`Filtered events on homepage: ${filteredEvents.length}`);
+  }, [events, filteredEvents]);
+
   // Navigation cards for other features
   const features = [
     {
@@ -134,6 +141,8 @@ const Index: React.FC = () => {
             searchQuery={searchQuery}
             isLoading={isLoading}
             totalCount={filteredEvents.length || (events?.length || 0)}
+            currentPage={pagination.currentPage}
+            itemsPerPage={pagination.itemsPerPage}
           />
           
           <EventPagination

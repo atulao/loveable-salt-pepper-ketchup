@@ -23,7 +23,9 @@ export function usePagination({ totalItems, itemsPerPage, initialPage = 1 }: Use
   const endIndex = Math.min(startIndex + itemsPerPage - 1, totalItems - 1);
   
   const paginateItems = <T>(items: T[]): T[] => {
-    return items.slice(startIndex, endIndex + 1);
+    // Ensure we're not trying to slice beyond the array bounds
+    if (!items || items.length === 0) return [];
+    return items.slice(startIndex, Math.min(startIndex + itemsPerPage, items.length));
   };
   
   const goToPage = (page: number) => {
@@ -44,6 +46,8 @@ export function usePagination({ totalItems, itemsPerPage, initialPage = 1 }: Use
     paginateItems,
     goToPage,
     nextPage,
-    prevPage
+    prevPage,
+    itemsPerPage,
+    totalItems
   };
 }
