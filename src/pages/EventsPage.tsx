@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { useEvents } from '@/hooks/useEvents'
 import { usePagination } from '@/hooks/usePagination'
