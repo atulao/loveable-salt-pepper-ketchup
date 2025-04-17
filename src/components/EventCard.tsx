@@ -30,7 +30,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   return (
     <div 
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 h-full flex flex-col ${
         expanded ? 'ring-2 ring-njit-navy' : 'hover:shadow-lg'
       }`}
       onClick={() => setExpanded(!expanded)}
@@ -41,7 +41,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         hasFreeFood={event.has_free_food}
       />
       
-      <div className="p-4">
+      <div className="p-3 flex flex-col flex-grow">
         <EventCardHeader 
           event={event}
           favorited={favorited}
@@ -64,10 +64,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           </>
         )}
         
-        <EventCardExpander 
-          expanded={expanded}
-          onClick={handleExpand}
-        />
+        <div className="mt-auto">
+          <EventCardExpander 
+            expanded={expanded}
+            onClick={handleExpand}
+          />
+        </div>
       </div>
     </div>
   );

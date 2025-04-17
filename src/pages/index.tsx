@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,8 +91,8 @@ const Index: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-2 sm:px-4 py-6">
+      <div className="max-w-[1600px] mx-auto">
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-njit-navy mb-2">
             Salt-Pepper-Ketchup
@@ -105,11 +106,11 @@ const Index: React.FC = () => {
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-njit-navy mb-6">Campus Events</h2>
           
-          <div className="mb-8">
+          <div className="mb-6">
             <SearchBar onSearch={handleSearch} />
           </div>
           
-          <div className="mb-8">
+          <div className="mb-6">
             <PersonaToggle />
             
             <CategoryFilter 
