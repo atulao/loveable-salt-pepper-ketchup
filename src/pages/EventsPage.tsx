@@ -35,10 +35,7 @@ const EventsPage: React.FC = () => {
     
     let result = [...events];
     
-    // Apply persona filter
-    result = filterEventsByPersona(result, persona);
-    
-    // Apply search query filter
+    // Apply search query filter first
     if (searchQuery) {
       result = filterEventsByQuery(result, searchQuery);
     }
@@ -51,6 +48,11 @@ const EventsPage: React.FC = () => {
     // Apply free food filter
     if (showFreeFood) {
       result = filterEventsByFreeFood(result, showFreeFood);
+    }
+    
+    // Only apply persona filter if we're not specifically searching or filtering
+    if (!searchQuery && selectedCategories.length === 0 && !showFreeFood) {
+      result = filterEventsByPersona(result, persona);
     }
     
     setFilteredEvents(result);

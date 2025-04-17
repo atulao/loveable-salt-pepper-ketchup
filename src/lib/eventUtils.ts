@@ -8,11 +8,26 @@ export const filterEventsByQuery = (events: Event[], query: string): Event[] => 
   const normalizedQuery = query.toLowerCase();
   
   return events.filter(event => {
+    // Check if the event has HTML in description and search both HTML and plain text versions
+    const hasHtmlInDescription = event.description.includes('<') && event.description.includes('>');
+    
+    // Create a plain text version of the description for searching
+    let plainTextDescription = event.description;
+    if (hasHtmlInDescription) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = event.description;
+      plainTextDescription = tempDiv.textContent || tempDiv.innerText || '';
+    }
+    
     return (
       event.title.toLowerCase().includes(normalizedQuery) ||
       event.description.toLowerCase().includes(normalizedQuery) ||
+      plainTextDescription.toLowerCase().includes(normalizedQuery) ||
       event.location.toLowerCase().includes(normalizedQuery) ||
-      event.categories.some(category => category.toLowerCase().includes(normalizedQuery))
+      event.categories.some(category => category.toLowerCase().includes(normalizedQuery)) ||
+      // Check food-related terms for "pizza" searches
+      (normalizedQuery.includes('pizza') && event.has_free_food) ||
+      (normalizedQuery.includes('food') && event.has_free_food)
     );
   });
 };
@@ -35,6 +50,8 @@ export const filterEventsByFreeFood = (events: Event[], hasFreeFood: boolean): E
 
 // Filter events based on user persona (Commuter or Resident)
 export const filterEventsByPersona = (events: Event[], persona: 'commuter' | 'resident'): Event[] => {
+  if (!persona || events.length === 0) return events;
+
   if (persona === 'commuter') {
     // Prioritize daytime events, events with food, and commuter-specific activities
     return events.filter(event => {
@@ -88,6 +105,11 @@ export const processNaturalLanguageQuery = (query: string): {
     normalizedQuery.includes('eat')
   ) {
     result.categories.push('Food');
+    
+    // If specifically looking for free food
+    if (normalizedQuery.includes('free')) {
+      result.hasFreeFood = true;
+    }
   }
   
   // Check for free food specifically
