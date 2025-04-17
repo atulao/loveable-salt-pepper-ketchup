@@ -20,6 +20,36 @@ export interface Event {
   created_at?: string;
 }
 
+// Helper function to build the Supabase query with filters
+const buildEventsQuery = (
+  searchQuery: string = '',
+  selectedCategories: string[] = [],
+  showFreeFood: boolean = false
+) => {
+  // Start with the base query
+  let query = supabase
+    .from('events')
+    .select('*', { count: 'exact' })
+    .order('date', { ascending: true });
+
+  // Apply search filter if provided
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+  }
+  
+  // Apply category filter if any categories are selected
+  if (selectedCategories && selectedCategories.length > 0) {
+    query = query.contains('categories', selectedCategories);
+  }
+  
+  // Apply free food filter if requested
+  if (showFreeFood) {
+    query = query.eq('has_free_food', true);
+  }
+
+  return query;
+}
+
 export const useEvents = (
   page: number = 1,
   itemsPerPage: number = 20,
@@ -34,62 +64,53 @@ export const useEvents = (
   const { toast } = useToast()
 
   const fetchPage = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      console.log(`Fetching events - page: ${page}, itemsPerPage: ${itemsPerPage}`)
+      console.log(`Fetching events - page: ${page}, itemsPerPage: ${itemsPerPage}`);
       
-      // build your base query
-      let q = supabase
-        .from('events')
-        .select('*', { count: 'exact' })
-        .order('date', { ascending: true })
-
-      // apply filters
-      if (searchQuery) {
-        q = q
-          .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
-      }
+      // Build the query with all filters
+      const query = buildEventsQuery(searchQuery, selectedCategories, showFreeFood);
       
-      if (selectedCategories && selectedCategories.length) {
-        q = q.contains('categories', selectedCategories)
-      }
-      
-      if (showFreeFood) {
-        q = q.eq('has_free_food', true)
-      }
-
       // Calculate pagination range
-      const from = (page - 1) * itemsPerPage
-      const to = from + itemsPerPage - 1
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
 
-      console.log(`Pagination: from=${from}, to=${to}`)
+      console.log(`Pagination: from=${from}, to=${to}`);
       
-      const { data, error: dbError, count } = await q.range(from, to)
+      // Execute the query with pagination
+      const { data, error: dbError, count } = await query.range(from, to);
       
-      if (dbError) throw dbError
+      if (dbError) throw dbError;
 
-      console.log(`Fetched ${data?.length || 0} events, total count: ${count || 0}`)
+      console.log(`Fetched ${data?.length || 0} events, total count: ${count || 0}`);
       
-      setEvents(data || [])
-      setTotalCount(count || 0)
+      setEvents(data || []);
+      setTotalCount(count || 0);
     } catch (err: any) {
-      console.error("Error fetching events:", err)
-      setError(err.message || 'Error loading events')
+      console.error("Error fetching events:", err);
+      setError(err.message || 'Error loading events');
       toast({
         title: 'Error loading events',
         description: err.message || 'Please try again later',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [page, itemsPerPage, searchQuery, selectedCategories, showFreeFood, toast])
+  }, [page, itemsPerPage, searchQuery, selectedCategories, showFreeFood, toast]);
 
   useEffect(() => {
-    fetchPage()
-  }, [fetchPage])
+    fetchPage();
+  }, [fetchPage]);
 
-  return { events, totalCount, isLoading, error, refetch: fetchPage }
+  return { 
+    events, 
+    totalCount, 
+    isLoading, 
+    error, 
+    refetch: fetchPage,
+    currentPage: page
+  };
 }

@@ -7,6 +7,8 @@ import EventPagination from '@/components/EventPagination'
 import SearchBar from '@/components/SearchBar'
 import CategoryFilter from '@/components/CategoryFilter'
 import PersonaToggle from '@/components/PersonaToggle'
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { ReloadIcon } from "@radix-ui/react-icons"
 
 const ITEMS_PER_PAGE = 20
 
@@ -29,7 +31,7 @@ const EventsPage: React.FC = () => {
   })
 
   // fetch exactly one page from Supabase + filters
-  const { events, totalCount, isLoading, error } = useEvents(
+  const { events, totalCount, isLoading, error, refetch } = useEvents(
     currentPage,
     itemsPerPage,
     searchQuery,
@@ -50,22 +52,63 @@ const EventsPage: React.FC = () => {
     }
   }, [totalCount, setTotalItems, goToPage, currentPage])
 
+  // Handle search submission
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // Reset to page 1 when search changes
+    if (currentPage !== 1) {
+      goToPage(1);
+    }
+  }
+
+  // Handle category changes
+  const handleCategoriesChange = (categories: string[]) => {
+    setSelectedCategories(categories);
+    // Reset to page 1 when categories change
+    if (currentPage !== 1) {
+      goToPage(1);
+    }
+  }
+
+  // Handle free food toggle
+  const handleFreeFoodToggle = (value: boolean) => {
+    setShowFreeFood(value);
+    // Reset to page 1 when free food filter changes
+    if (currentPage !== 1) {
+      goToPage(1);
+    }
+  }
+
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-4">Campus Events</h1>
 
-      <SearchBar onSearch={q => setSearchQuery(q)} />
+      <SearchBar onSearch={handleSearch} />
 
       <PersonaToggle />
 
       <CategoryFilter
         selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
+        setSelectedCategories={handleCategoriesChange}
         showFreeFood={showFreeFood}
-        setShowFreeFood={setShowFreeFood}
+        setShowFreeFood={handleFreeFoodToggle}
       />
 
-      {error && <div className="text-red-600 mb-4">{error}</div>}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            <span>{error}</span>
+            <button 
+              onClick={() => refetch()} 
+              className="px-3 py-1 bg-destructive/10 hover:bg-destructive/20 rounded-md transition-colors flex items-center gap-2"
+            >
+              <ReloadIcon className="h-4 w-4" />
+              Retry
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <EventList
         events={events || []}
@@ -79,7 +122,7 @@ const EventsPage: React.FC = () => {
       {totalCount > itemsPerPage && (
         <EventPagination
           currentPage={currentPage}
-          totalPages={Math.ceil(totalCount / itemsPerPage)}
+          totalPages={totalPages}
           onPageChange={goToPage}
         />
       )}
