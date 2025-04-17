@@ -10,8 +10,10 @@ export interface Event {
   description: string;
   date: string;
   time?: string;
+  end_time?: string;
   location?: string;
   organizer?: string;
+  organization?: string;
   image_url?: string;
   categories: string[];
   has_free_food: boolean;
