@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Mic } from 'lucide-react';
 import { processNaturalLanguageQuery, semanticSearchEvents } from '@/lib/eventUtils';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { events } from '@/data/mockEvents';
+import { fetchEvents } from '@/lib/api';
+import { Event } from '@/data/mockEvents';
 
 interface SearchBarProps {
   onSearch: (query: string, categories: string[], hasFreeFood: boolean) => void;
@@ -14,12 +15,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+
+  // Load initial events for suggestions
+  useEffect(() => {
+    const loadInitialEvents = async () => {
+      try {
+        const events = await fetchEvents();
+        setRecentEvents(events.slice(0, 10)); // Keep the 10 most recent events
+      } catch (error) {
+        console.error('Failed to load initial events for suggestions:', error);
+      }
+    };
+
+    loadInitialEvents();
+  }, []);
 
   // Generate search suggestions based on user input
   useEffect(() => {
     if (query.trim().length > 2) {
       // Find matching events using semantic search
-      const matchingEvents = semanticSearchEvents(events, query);
+      const matchingEvents = semanticSearchEvents(recentEvents, query);
       
       // Extract suggestions from matching events
       const newSuggestions = matchingEvents
@@ -33,7 +49,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [query]);
+  }, [query, recentEvents]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

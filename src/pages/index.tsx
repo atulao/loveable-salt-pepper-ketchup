@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import PersonaToggle from '@/components/PersonaToggle';
 import CategoryFilter from '@/components/CategoryFilter';
 import EventList from '@/components/EventList';
-import { Event, events } from '@/data/mockEvents';
+import { Event } from '@/data/mockEvents';
+import { fetchEvents } from '@/lib/api';
 import { 
   filterEventsByQuery, 
   filterEventsByCategories, 
@@ -13,6 +13,7 @@ import {
   getRecommendedEvents,
   semanticSearchEvents
 } from '@/lib/eventUtils';
+import { useToast } from '@/hooks/use-toast';
 
 const Index: React.FC = () => {
   // State for search and filters
@@ -21,8 +22,13 @@ const Index: React.FC = () => {
   const [showFreeFood, setShowFreeFood] = useState(false);
   const [persona, setPersona] = useState<'commuter' | 'resident'>('commuter');
   
-  // State for filtered events
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>(events);
+  // State for events
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Toast notifications
+  const { toast } = useToast();
   
   // State for tracking viewed events (for recommendations)
   const [viewedEventIds, setViewedEventIds] = useState<string[]>([]);
@@ -30,9 +36,33 @@ const Index: React.FC = () => {
   // State for user interests (could be persisted in localStorage in a real app)
   const [userInterests, setUserInterests] = useState<string[]>([]);
   
-  // Apply filters whenever search parameters change
+  // Fetch events on component mount
   useEffect(() => {
-    let result = [...events];
+    const loadEvents = async () => {
+      setLoading(true);
+      try {
+        const events = await fetchEvents();
+        setAllEvents(events);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+        toast({
+          title: "Error loading events",
+          description: "Could not load events from NJIT API. Using cached data if available.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    };
+    
+    loadEvents();
+  }, [toast]);
+  
+  // Apply filters whenever search parameters or events change
+  useEffect(() => {
+    if (allEvents.length === 0) return;
+    
+    let result = [...allEvents];
     
     // Apply persona filter
     result = filterEventsByPersona(result, persona);
@@ -66,10 +96,10 @@ const Index: React.FC = () => {
     }
     
     setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, persona, viewedEventIds, userInterests]);
+  }, [searchQuery, selectedCategories, showFreeFood, persona, viewedEventIds, userInterests, allEvents]);
   
   // Handle search submission
-  const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
+  const handleSearch = async (query: string, categories: string[], hasFreeFood: boolean) => {
     setSearchQuery(query);
     
     // Set categories from natural language processing if any were detected
@@ -81,6 +111,25 @@ const Index: React.FC = () => {
     if (hasFreeFood) {
       setShowFreeFood(true);
     }
+    
+    // If there's a query, fetch more specific results from the API
+    if (query) {
+      setLoading(true);
+      try {
+        const events = await fetchEvents(query);
+        setAllEvents(events);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch events with query:', error);
+        // Keep using the current events but notify the user
+        toast({
+          title: "Search issue",
+          description: "Could not fetch new events. Using current data.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    }
   };
   
   // Track viewed events for recommendation engine
@@ -89,7 +138,7 @@ const Index: React.FC = () => {
       setViewedEventIds(prev => [...prev, eventId]);
       
       // Update user interests based on viewed event
-      const viewedEvent = events.find(e => e.id === eventId);
+      const viewedEvent = allEvents.find(e => e.id === eventId);
       if (viewedEvent) {
         setUserInterests(prev => {
           const newInterests = [...prev];
@@ -133,11 +182,18 @@ const Index: React.FC = () => {
         </section>
         
         <section>
-          <EventList 
-            events={filteredEvents} 
-            searchQuery={searchQuery}
-            onEventView={handleEventView}
-          />
+          {loading ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-njit-red"></div>
+              <span className="ml-3 text-lg text-gray-600">Loading events...</span>
+            </div>
+          ) : (
+            <EventList 
+              events={filteredEvents} 
+              searchQuery={searchQuery}
+              onEventView={handleEventView}
+            />
+          )}
         </section>
       </div>
     </div>
