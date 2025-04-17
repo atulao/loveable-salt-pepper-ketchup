@@ -50,13 +50,15 @@ export function useEvents(initialQuery: string = '') {
   const { data: events = [], isLoading: loading, error } = useQuery({
     queryKey: ['events', searchQuery],
     queryFn: () => fetchEvents(searchQuery),
-    onError: (err: Error) => {
-      console.error('useEvents: Error fetching events:', err);
-      toast({
-        title: "Error loading events",
-        description: "Could not load events from the API. Please try again later.",
-        variant: "destructive",
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('useEvents: Error fetching events:', err);
+        toast({
+          title: "Error loading events",
+          description: "Could not load events from the API. Please try again later.",
+          variant: "destructive",
+        });
+      }
     }
   });
 

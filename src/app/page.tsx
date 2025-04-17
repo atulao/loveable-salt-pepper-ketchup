@@ -125,7 +125,7 @@ const EventsPage: React.FC = () => {
               <h3 className="text-2xl font-medium text-gray-700 mb-2">Something went wrong</h3>
               <p className="text-gray-500 mb-4">{error}</p>
               <button 
-                onClick={() => fetchEvents()}
+                onClick={() => fetchEvents("")}
                 className="bg-njit-red hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
               >
                 Try Again
