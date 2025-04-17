@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map, Heart, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,12 +9,15 @@ import {
   downloadICalFile
 } from '@/lib/calendarUtils';
 import { getDirectionsUrl } from '@/lib/locationUtils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+// Import our new components
+import EventCardHeader from './event-card/EventCardHeader';
+import EventCardImage from './event-card/EventCardImage';
+import EventCardDetails from './event-card/EventCardDetails';
+import EventCardCategories from './event-card/EventCardCategories';
+import EventCardDescription from './event-card/EventCardDescription';
+import EventCardActions from './event-card/EventCardActions';
+import EventCardExpander from './event-card/EventCardExpander';
 
 interface EventCardProps {
   event: Event;
@@ -103,9 +105,9 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     toggleFavorite(event.id);
   };
 
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+  const handleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
   };
 
   return (
@@ -115,135 +117,39 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       }`}
       onClick={() => setExpanded(!expanded)}
     >
-      {event.image_url && (
-        <div className="relative h-48 overflow-hidden">
-          <img 
-            src={event.image_url} 
-            alt={event.title} 
-            className="w-full h-full object-cover"
-          />
-          {event.has_free_food && (
-            <div className="absolute top-0 right-0 bg-njit-red text-white py-1 px-3 rounded-bl-lg font-medium text-sm">
-              Free Food
-            </div>
-          )}
-        </div>
-      )}
+      <EventCardImage 
+        imageUrl={event.image_url}
+        title={event.title}
+        hasFreeFood={event.has_free_food}
+      />
       
       <div className="p-4">
-        <div className="flex justify-between">
-          <h3 className="text-lg font-semibold text-njit-navy">{event.title}</h3>
-          {user && (
-            <button 
-              onClick={handleToggleFavorite}
-              className={`p-1 rounded-full ${favorited ? 'text-red-500' : 'text-gray-400 hover:text-red-500'} transition-colors`}
-            >
-              <Heart size={20} fill={favorited ? "currentColor" : "none"} />
-            </button>
-          )}
-        </div>
+        <EventCardHeader 
+          event={event}
+          favorited={favorited}
+          onToggleFavorite={handleToggleFavorite}
+        />
         
-        <div className="mt-2 space-y-2">
-          <div className="flex items-center text-gray-600">
-            <Calendar size={16} className="mr-2 text-njit-red" />
-            <span>{formatDate(event.date)}</span>
-          </div>
-          
-          <div className="flex items-center text-gray-600">
-            <Clock size={16} className="mr-2 text-njit-red" />
-            <span>{event.time} - {event.end_time}</span>
-          </div>
-          
-          <div className="flex items-center text-gray-600">
-            <MapPin size={16} className="mr-2 text-njit-red" />
-            <span className="truncate">{event.location}</span>
-          </div>
-          
-          {event.organization && (
-            <div className="flex items-center text-gray-600">
-              <Users size={16} className="mr-2 text-njit-red" />
-              <span className="truncate">Hosted by: {event.organization}</span>
-            </div>
-          )}
-        </div>
+        <EventCardDetails event={event} />
         
-        <div className="mt-3 flex flex-wrap gap-1">
-          {event.categories.map((category) => (
-            <span 
-              key={category} 
-              className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded"
-            >
-              {category}
-            </span>
-          ))}
-        </div>
+        <EventCardCategories categories={event.categories} />
         
         {expanded && (
-          <div className="mt-4 animate-fade-in">
-            <p className="text-gray-700">{event.description}</p>
+          <>
+            <EventCardDescription description={event.description} />
             
-            <div className="mt-4 flex flex-wrap justify-end space-x-2">
-              <button 
-                className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
-                onClick={handleShare}
-              >
-                <Share2 size={16} className="mr-1" />
-                Share
-              </button>
-              
-              <button 
-                className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
-                onClick={handleGetDirections}
-              >
-                <Map size={16} className="mr-1" />
-                Directions
-              </button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button 
-                    className="flex items-center text-sm text-gray-600 hover:text-njit-red transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Plus size={16} className="mr-1" />
-                    Add to Calendar
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'google')}>
-                    Google Calendar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'apple')}>
-                    Apple Calendar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => handleAddToCalendar(e, 'outlook')}>
-                    Outlook Calendar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+            <EventCardActions 
+              onShare={handleShare}
+              onGetDirections={handleGetDirections}
+              onAddToCalendar={handleAddToCalendar}
+            />
+          </>
         )}
         
-        <button 
-          className="w-full mt-4 flex items-center justify-center text-sm text-njit-navy hover:text-njit-red transition-colors"
-          onClick={(e) => {
-            e.stopPropagation();
-            setExpanded(!expanded);
-          }}
-        >
-          {expanded ? (
-            <>
-              <ChevronUp size={16} className="mr-1" />
-              Show Less
-            </>
-          ) : (
-            <>
-              <ChevronDown size={16} className="mr-1" />
-              Show More
-            </>
-          )}
-        </button>
+        <EventCardExpander 
+          expanded={expanded}
+          onClick={handleExpand}
+        />
       </div>
     </div>
   );
