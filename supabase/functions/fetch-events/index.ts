@@ -36,6 +36,7 @@ serve(async (req) => {
       date: event.startsOn.split("T")[0], // Extract date part
       time: formatTime(event.startsOn),
       end_time: formatTime(event.endsOn),
+      organization: event.organizationName || "NJIT",
       categories: event.categoryNames || [],
       has_free_food: event.categoryNames?.some((cat: string) => 
         cat.toLowerCase().includes("food") || 

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map, Heart } from 'lucide-react';
+import { Calendar, Clock, MapPin, ChevronDown, ChevronUp, Share2, Plus, Download, Map, Heart, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
@@ -158,6 +158,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             <MapPin size={16} className="mr-2 text-njit-red" />
             <span className="truncate">{event.location}</span>
           </div>
+          
+          {event.organization && (
+            <div className="flex items-center text-gray-600">
+              <Users size={16} className="mr-2 text-njit-red" />
+              <span className="truncate">Hosted by: {event.organization}</span>
+            </div>
+          )}
         </div>
         
         <div className="mt-3 flex flex-wrap gap-1">

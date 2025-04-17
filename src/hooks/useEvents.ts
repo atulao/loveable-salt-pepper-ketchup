@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +12,7 @@ export interface Event {
   date: string;
   time: string;
   end_time: string;
+  organization?: string;
   categories: string[];
   has_free_food: boolean;
   image_url?: string;
