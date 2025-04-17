@@ -18,7 +18,7 @@ const EventCardImage: React.FC<EventCardImageProps> = ({
   const fallbackImage = '/placeholder.svg';
   
   return (
-    <div className="relative h-48 overflow-hidden">
+    <div className="relative h-36 overflow-hidden">
       <img 
         src={imageError || !imageUrl ? fallbackImage : imageUrl}
         alt={title} 

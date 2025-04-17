@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   filterEventsByQuery, 
   filterEventsByCategories, 
-  filterEventsByFreeFood,
-  filterEventsByPersona
+  filterEventsByFreeFood
 } from '@/lib/eventUtils';
 
 const Index: React.FC = () => {
@@ -36,9 +34,6 @@ const Index: React.FC = () => {
     
     let result = [...events];
     
-    // Apply persona filter
-    result = filterEventsByPersona(result, persona);
-    
     // Apply search query filter
     if (searchQuery) {
       result = filterEventsByQuery(result, searchQuery);
@@ -55,7 +50,7 @@ const Index: React.FC = () => {
     }
     
     setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, persona, events]);
+  }, [searchQuery, selectedCategories, showFreeFood, events]);
   
   // Handle search submission
   const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
