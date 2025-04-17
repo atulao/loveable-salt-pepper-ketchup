@@ -16,11 +16,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (query.trim()) {
-      const { processedQuery, categories, hasFreeFood } = processNaturalLanguageQuery(query);
-      onSearch(processedQuery, categories, hasFreeFood);
-      console.log(`Searching for: "${processedQuery}", Categories: ${categories.join(', ')}, Free Food: ${hasFreeFood}`);
-    }
+    // Even if the query is empty, process it to reset the filters
+    const { processedQuery, categories, hasFreeFood } = processNaturalLanguageQuery(query);
+    onSearch(processedQuery, categories, hasFreeFood);
+    console.log(`Searching for: "${processedQuery}", Categories: ${categories.join(', ')}, Free Food: ${hasFreeFood}`);
   };
 
   const handleClear = () => {

@@ -1,6 +1,13 @@
 
 import { Event } from '@/hooks/useEvents';
 
+// Helper function to strip HTML tags
+const stripHtml = (html: string) => {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || '';
+};
+
 // Filter events based on search query
 export const filterEventsByQuery = (events: Event[], query: string): Event[] => {
   if (!query) return events;
@@ -8,20 +15,11 @@ export const filterEventsByQuery = (events: Event[], query: string): Event[] => 
   const normalizedQuery = query.toLowerCase();
   
   return events.filter(event => {
-    // Check if the event has HTML in description and search both HTML and plain text versions
-    const hasHtmlInDescription = event.description.includes('<') && event.description.includes('>');
-    
     // Create a plain text version of the description for searching
-    let plainTextDescription = event.description;
-    if (hasHtmlInDescription) {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = event.description;
-      plainTextDescription = tempDiv.textContent || tempDiv.innerText || '';
-    }
+    let plainTextDescription = stripHtml(event.description);
     
     return (
       event.title.toLowerCase().includes(normalizedQuery) ||
-      event.description.toLowerCase().includes(normalizedQuery) ||
       plainTextDescription.toLowerCase().includes(normalizedQuery) ||
       event.location.toLowerCase().includes(normalizedQuery) ||
       event.categories.some(category => category.toLowerCase().includes(normalizedQuery)) ||
@@ -121,6 +119,11 @@ export const processNaturalLanguageQuery = (query: string): {
     normalizedQuery.includes('free dinner') || 
     normalizedQuery.includes('free snack')
   ) {
+    result.hasFreeFood = true;
+  }
+  
+  // Explicitly set hasFreeFood to true for pizza searches
+  if (normalizedQuery.includes('pizza')) {
     result.hasFreeFood = true;
   }
   

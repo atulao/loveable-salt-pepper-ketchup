@@ -12,8 +12,7 @@ import { Button } from '@/components/ui/button';
 import { 
   filterEventsByQuery, 
   filterEventsByCategories, 
-  filterEventsByFreeFood,
-  filterEventsByPersona
+  filterEventsByFreeFood
 } from '@/lib/eventUtils';
 
 const EventsPage: React.FC = () => {
@@ -50,13 +49,11 @@ const EventsPage: React.FC = () => {
       result = filterEventsByFreeFood(result, showFreeFood);
     }
     
-    // Only apply persona filter if we're not specifically searching or filtering
-    if (!searchQuery && selectedCategories.length === 0 && !showFreeFood) {
-      result = filterEventsByPersona(result, persona);
-    }
+    // Don't apply persona-based filtering by default
+    // This ensures all events are shown
     
     setFilteredEvents(result);
-  }, [searchQuery, selectedCategories, showFreeFood, persona, events]);
+  }, [searchQuery, selectedCategories, showFreeFood, events]);
   
   // Handle search submission
   const handleSearch = (query: string, categories: string[], hasFreeFood: boolean) => {
@@ -121,7 +118,7 @@ const EventsPage: React.FC = () => {
       )}
       
       <EventList 
-        events={filteredEvents} 
+        events={filteredEvents.length > 0 ? filteredEvents : events || []} 
         searchQuery={searchQuery}
         isLoading={isLoading}
       />
