@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+
+import React, { useState, useEffect } from 'react'
 import { useEvents } from '@/hooks/useEvents'
 import { usePagination } from '@/hooks/usePagination'
 import EventList from '@/components/EventList'
@@ -15,14 +16,15 @@ const EventsPage: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [showFreeFood, setShowFreeFood] = useState(false)
 
-  // pagination hook uses the totalCount returned from the server
+  // pagination state - will be updated after we get data
   const {
     currentPage,
     totalPages,
     goToPage,
     itemsPerPage,
+    setTotalItems
   } = usePagination({
-    totalItems: 0,    // placeholder, will override below
+    totalItems: 0,
     itemsPerPage: ITEMS_PER_PAGE,
   })
 
@@ -35,12 +37,18 @@ const EventsPage: React.FC = () => {
     showFreeFood
   )
 
-  // whenever totalCount changes, let the pagination hook know
-  React.useEffect(() => {
-    // override totalItems in the pagination hook
-    // this will also reset currentPage→1 if totalCount shrinks below
-    goToPage(1) // keep UX simple: jump back to page 1 whenever the overall count changes
-  }, [totalCount])
+  // whenever totalCount changes, update the pagination
+  useEffect(() => {
+    if (totalCount !== undefined) {
+      console.log(`Updating pagination with total count: ${totalCount}`)
+      setTotalItems(totalCount)
+      
+      // Only reset to page 1 when filters change, not on initial load
+      if (totalCount === 0 && currentPage > 1) {
+        goToPage(1)
+      }
+    }
+  }, [totalCount, setTotalItems, goToPage, currentPage])
 
   return (
     <div className="container mx-auto py-6">
@@ -60,7 +68,8 @@ const EventsPage: React.FC = () => {
       {error && <div className="text-red-600 mb-4">{error}</div>}
 
       <EventList
-        events={events}
+        events={events || []}
+        searchQuery={searchQuery}
         isLoading={isLoading}
         totalCount={totalCount}
         currentPage={currentPage}

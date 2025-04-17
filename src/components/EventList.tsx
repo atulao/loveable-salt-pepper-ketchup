@@ -5,21 +5,21 @@ import { Event } from '@/hooks/useEvents';
 
 interface EventListProps {
   events: Event[];
-  searchQuery: string;
+  searchQuery?: string;
   isLoading?: boolean;
   totalCount?: number;
   currentPage?: number;
-  totalPages?: number;
   itemsPerPage?: number;
+  totalPages?: number;
 }
 
 const EventList: React.FC<EventListProps> = ({ 
   events, 
-  searchQuery, 
-  isLoading,
-  totalCount,
-  currentPage,
-  itemsPerPage
+  searchQuery = '', 
+  isLoading = false,
+  totalCount = 0,
+  currentPage = 1,
+  itemsPerPage = 20
 }) => {
   if (isLoading) {
     return (
@@ -29,7 +29,7 @@ const EventList: React.FC<EventListProps> = ({
     );
   }
   
-  if (events.length === 0) {
+  if (!events || events.length === 0) {
     return (
       <div className="text-center py-12">
         <h3 className="text-2xl font-medium text-gray-700 mb-2">No events found</h3>
