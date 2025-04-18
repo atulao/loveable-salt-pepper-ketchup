@@ -39,7 +39,7 @@ export const useEventCard = (event: Event) => {
   const handleGetDirections = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    const directionsUrl = getDirectionsUrl(event.location || '');
+    const directionsUrl = getDirectionsUrl(event.location);
     window.open(directionsUrl, '_blank');
     toast({
       title: "Opening directions",
@@ -53,10 +53,10 @@ export const useEventCard = (event: Event) => {
     const calendarUrls = generateCalendarUrls(
       event.title,
       event.description,
-      event.location || '',
+      event.location,
       event.date,
-      event.time || '',
-      event.end_time || ''
+      event.time,
+      event.end_time
     );
     
     if (calendarType === 'google') {
@@ -69,10 +69,10 @@ export const useEventCard = (event: Event) => {
       downloadICalFile(
         event.title,
         event.description,
-        event.location || '',
+        event.location,
         event.date,
-        event.time || '',
-        event.end_time || ''
+        event.time,
+        event.end_time
       );
       toast({
         title: "Apple Calendar file downloaded",

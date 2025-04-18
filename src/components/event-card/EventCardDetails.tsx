@@ -22,18 +22,18 @@ const EventCardDetails: React.FC<EventCardDetailsProps> = ({ event }) => {
       
       <div className="flex items-center text-gray-600">
         <Clock size={16} className="mr-2 text-njit-red" />
-        <span>{event.time} - {event.end_time || 'TBD'}</span>
+        <span>{event.time} - {event.end_time}</span>
       </div>
       
       <div className="flex items-center text-gray-600">
         <MapPin size={16} className="mr-2 text-njit-red" />
-        <span className="truncate">{event.location || 'TBD'}</span>
+        <span className="truncate">{event.location}</span>
       </div>
       
-      {(event.organization || event.organizer) && (
+      {event.organization && (
         <div className="flex items-center text-gray-600">
           <Users size={16} className="mr-2 text-njit-red" />
-          <span className="truncate">Hosted by: {event.organization || event.organizer || 'Unknown'}</span>
+          <span className="truncate">Hosted by: {event.organization}</span>
         </div>
       )}
     </div>
