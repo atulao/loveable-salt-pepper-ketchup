@@ -7,8 +7,6 @@ import EventPagination from '@/components/EventPagination'
 import SearchBar from '@/components/SearchBar'
 import CategoryFilter from '@/components/CategoryFilter'
 import PersonaToggle from '@/components/PersonaToggle'
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { ReloadIcon } from "@radix-ui/react-icons"
 
 const ITEMS_PER_PAGE = 20
 
@@ -17,7 +15,6 @@ const EventsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [showFreeFood, setShowFreeFood] = useState(false)
-  const [shouldResetPage, setShouldResetPage] = useState(false)
 
   // pagination state - will be updated after we get data
   const {
@@ -32,7 +29,7 @@ const EventsPage: React.FC = () => {
   })
 
   // fetch exactly one page from Supabase + filters
-  const { events, totalCount, isLoading, error, refetch } = useEvents(
+  const { events, totalCount, isLoading, error } = useEvents(
     currentPage,
     itemsPerPage,
     searchQuery,
@@ -45,65 +42,30 @@ const EventsPage: React.FC = () => {
     if (totalCount !== undefined) {
       console.log(`Updating pagination with total count: ${totalCount}`)
       setTotalItems(totalCount)
+      
+      // Only reset to page 1 when filters change, not on initial load
+      if (totalCount === 0 && currentPage > 1) {
+        goToPage(1)
+      }
     }
-  }, [totalCount, setTotalItems])
-
-  // Handle resetting to page 1 when filters change
-  useEffect(() => {
-    if (shouldResetPage && currentPage !== 1) {
-      goToPage(1)
-      setShouldResetPage(false)
-    }
-  }, [shouldResetPage, currentPage, goToPage])
-
-  // Handle search submission
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    setShouldResetPage(true)
-  }
-
-  // Handle category changes
-  const handleCategoriesChange = (categories: string[]) => {
-    setSelectedCategories(categories)
-    setShouldResetPage(true)
-  }
-
-  // Handle free food toggle
-  const handleFreeFoodToggle = (value: boolean) => {
-    setShowFreeFood(value)
-    setShouldResetPage(true)
-  }
+  }, [totalCount, setTotalItems, goToPage, currentPage])
 
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-4">Campus Events</h1>
 
-      <SearchBar onSearch={handleSearch} />
+      <SearchBar onSearch={q => setSearchQuery(q)} />
 
       <PersonaToggle />
 
       <CategoryFilter
         selectedCategories={selectedCategories}
-        setSelectedCategories={handleCategoriesChange}
+        setSelectedCategories={setSelectedCategories}
         showFreeFood={showFreeFood}
-        setShowFreeFood={handleFreeFoodToggle}
+        setShowFreeFood={setShowFreeFood}
       />
 
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription className="flex justify-between items-center">
-            <span>{error}</span>
-            <button 
-              onClick={() => refetch()} 
-              className="px-3 py-1 bg-destructive/10 hover:bg-destructive/20 rounded-md transition-colors flex items-center gap-2"
-            >
-              <ReloadIcon className="h-4 w-4" />
-              Retry
-            </button>
-          </AlertDescription>
-        </Alert>
-      )}
+      {error && <div className="text-red-600 mb-4">{error}</div>}
 
       <EventList
         events={events || []}
@@ -117,7 +79,7 @@ const EventsPage: React.FC = () => {
       {totalCount > itemsPerPage && (
         <EventPagination
           currentPage={currentPage}
-          totalPages={totalPages}
+          totalPages={Math.ceil(totalCount / itemsPerPage)}
           onPageChange={goToPage}
         />
       )}
